@@ -1445,7 +1445,7 @@
   {
     "name": "autofill-upstream-enforce-strike-delay",
     "owners": ["osaul@google.com", "payments-autofill-team@google.com"],
-    "expiry_milestone": 160
+    "expiry_milestone": 170
   },
   {
     "name": "automatic-usb-detach",
@@ -1456,11 +1456,6 @@
     "name": "automotive-back-button-bar-streamline",
     "owners": ["eleanorlee@google.com", "clhager@google.com", "wenyufu@chromium.org"],
     "expiry_milestone": 160
-  },
-  {
-    "name": "auxiliary-search-donation",
-    "owners": [ "gangwu@chromium.org", "chrome-mobile-search@google.com" ],
-    "expiry_milestone": 170
   },
   {
     "name": "auxiliary-search-history-donation",
@@ -2812,7 +2807,7 @@
   {
     "name": "data-sharing",
     "owners": [ "haileywang@google.com", "chrome-tab-group-eng@google.com"],
-    "expiry_milestone": 160
+    "expiry_milestone": 170
   },
   {
     "name": "data-sharing-debug-logs",
@@ -2820,17 +2815,17 @@
       "dtrainor@google.com",
       "chrome-tab-group-eng@google.com"
     ],
-    "expiry_milestone": 160
+    "expiry_milestone": 170
   },
   {
     "name": "data-sharing-join-only",
     "owners": [ "haileywang@google.com", "chrome-tab-group-eng@google.com"],
-    "expiry_milestone": 160
+    "expiry_milestone": 170
   },
   {
     "name": "data-sharing-non-production-environment",
     "owners": [ "ritikagup@google.com", "chrome-tab-group-eng@google.com"],
-    "expiry_milestone": 160
+    "expiry_milestone": 170
   },
   {
     "name": "dbd-password-removal-on-android",
@@ -3446,6 +3441,11 @@
     "expiry_milestone": 150
   },
   {
+    "name": "enable-accessibility-map-to-new-class-names",
+    "owners": ["kyraseevers@chromium.org", "//ui/accessibility/OWNERS"],
+    "expiry_milestone": 177
+  },
+  {
     "name": "enable-accessibility-on-screen-mode",
     "owners": [
       "lucasradaelli@google.com",
@@ -3780,12 +3780,12 @@
   {
     "name": "enable-chrome-refresh-token-binding",
     "owners": ["alexilin@chromium.org", "chrome-signin-team@google.com"],
-    "expiry_milestone": 160
+    "expiry_milestone": 166
   },
   {
     "name": "enable-chrome-refresh-token-binding-upgrade",
     "owners": ["alexilin@chromium.org", "chrome-signin-team@google.com"],
-    "expiry_milestone": 160
+    "expiry_milestone": 166
   },
   {
     "name": "enable-cobrowse-on-aim-srp-tap",
@@ -4184,11 +4184,6 @@
     "expiry_milestone": 160
   },
   {
-    "name": "enable-iframe-for-pix",
-    "owners": [ "longsheng@google.com", "siashah@google.com", "chrome-payments-team@google.com", "payments-autofill-team@google.com" ],
-    "expiry_milestone": 155
-  },
-  {
     "name": "enable-input-event-logging",
     "owners": [ "hcutts@chromium.org", "chromeos-tango@google.com" ],
     // Used to attach input device debugging information to feedback reports.
@@ -4419,12 +4414,12 @@
   {
     "name": "enable-oauth-multilogin-standard-cookies-binding",
     "owners": [ "alexilin@chromium.org", "chrome-signin-team@google.com" ],
-    "expiry_milestone": 160
+    "expiry_milestone": 166
   },
   {
     "name": "enable-oauth-multilogin-youtube-cookies-binding",
     "owners": [ "alexilin@chromium.org", "chrome-signin-team@google.com" ],
-    "expiry_milestone": 160
+    "expiry_milestone": 166
   },
   {
     "name": "enable-omnibox-everywhere-virtual-focus",
@@ -5799,7 +5794,7 @@
   {
     "name": "glic-chrome-status-icon-win",
     "owners": [ "andreaxg@google.com", "//chrome/browser/glic/OWNERS" ],
-    "expiry_milestone": 160
+    "expiry_milestone": 170
   },
   {
     "name": "glic-context-menu-below-search",
@@ -5849,7 +5844,7 @@
       "harringtond@chromium.org",
       "//chrome/browser/glic/OWNERS"
     ],
-    "expiry_milestone": 160
+    "expiry_milestone": 170
   },
   {
     "name": "glic-experimental-triggering",
@@ -5922,7 +5917,7 @@
       "andreaxg@google.com",
       "//chrome/browser/glic/OWNERS"
     ],
-    "expiry_milestone": 160
+    "expiry_milestone": 170
   },
   {
     "name": "glic-marketing-auto-open",
@@ -5954,7 +5949,7 @@
       "harringtond@chromium.org",
       "//chrome/browser/glic/OWNERS"
     ],
-    "expiry_milestone": 160
+    "expiry_milestone": 170
   },
   {
     "name": "glic-opt-in-dialog-a11y-fix",
@@ -5985,7 +5980,7 @@
       "alexilin@chromium.org",
       "//chrome/browser/glic/OWNERS"
     ],
-    "expiry_milestone": 160
+    "expiry_milestone": 166
   },
   {
     "name": "glic-settings-a11y-context-fix",
@@ -6003,7 +5998,7 @@
   {
     "name": "glic-show-not-tell-tutorials",
     "owners": [ "andreaxg@google.com", "//chrome/browser/glic/OWNERS" ],
-    "expiry_milestone": 160
+    "expiry_milestone": 170
   },
   {
     "name": "glic-spark-settings-accessible-labels",
@@ -6481,7 +6476,7 @@
       "tmartino@chromium.org",
       "bling-transactions-eng@google.com"
     ],
-    "expiry_milestone": 160
+    "expiry_milestone": 170
   },
   {
     "name": "ios-passkey-modal-login-with-shim",
@@ -6490,7 +6485,7 @@
       "tmartino@chromium.org",
       "bling-transactions-eng@google.com"
     ],
-    "expiry_milestone": 160
+    "expiry_milestone": 170
   },
   {
     "name": "ios-password-manager-actor-login",
@@ -8118,7 +8113,7 @@
   {
     "name": "password-save-update-dropdown-menu-experiment",
     "owners": [ "talitahalboth@google.com", "chrome-password-manager-team@google.com" ],
-    "expiry_milestone": 160
+    "expiry_milestone": 165
   },
   {
     "name": "password-sign-in-in-context-error-resolution",
@@ -9388,11 +9383,6 @@
     "expiry_milestone": 170
   },
   {
-    "name": "tab-closure-method-refactor",
-    "owners": [ "madhavpruthi@google.org", "ckitagawa@chromium.org" ],
-    "expiry_milestone": 160
-  },
-  {
     "name": "tab-favicon-chips-to-coins",
     "owners": [ "ananyaseelam@google.com", "chrome-desktop-search@google.com" ],
     "expiry_milestone": 160
@@ -9849,7 +9839,7 @@
   {
     "name": "use-fullscreen-insets-api",
     "owners": [ "clhager@google.com"],
-    "expiry_milestone": 140
+    "expiry_milestone": 165
   },
   {
     "name": "use-fullscreen-insets-api-on-automotive",
@@ -9901,14 +9891,6 @@
     // This flag is required for dev testing via Stork profiles which can be quickly
     // created at go/stork-profile and managed at go/stork-batch.
     "expiry_milestone": -1
-  },
-  {
-    "name": "use-surface-view-for-thin-webview",
-    "owners": [
-      "shaktisahu@chromium.org",
-      "philyan@chromium.org"
-    ],
-    "expiry_milestone": 160
   },
   {
     "name": "use-sync-sandbox",

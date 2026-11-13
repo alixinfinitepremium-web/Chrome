@@ -56,6 +56,33 @@
 
 namespace viz {
 
+namespace {
+
+#if BUILDFLAG(IS_WIN)
+// Heuristic to guess if a render pass is the root pass of a web contents
+// surface. We check if it's large enough and close to two edges of the window.
+bool IsLikelyWebPageContent(const AggregatedRenderPass& render_pass,
+                            const AggregatedRenderPass& root_render_pass) {
+  if (!render_pass.is_from_surface_root_pass) {
+    return false;
+  }
+
+  gfx::Rect root_rect = root_render_pass.output_rect;
+  gfx::Rect pass_rect = cc::MathUtil::MapEnclosingClippedRect(
+      render_pass.transform_to_root_target, render_pass.output_rect);
+  pass_rect.Intersect(root_rect);
+
+  if (root_rect.IsEmpty() ||
+      pass_rect.size().Area64() < root_rect.size().Area64() / 4) {
+    return false;
+  }
+
+  return true;
+}
+#endif
+
+}  // namespace
+
 DirectRenderer::DrawingFrame::DrawingFrame() = default;
 DirectRenderer::DrawingFrame::~DrawingFrame() = default;
 
@@ -838,7 +865,12 @@ bool DirectRenderer::CanSkipRenderPass(
         !render_pass->copy_requests.empty()) {
       return false;
     }
-    return IsRenderPassResourceAllocated(render_pass->id);
+    // Reuse the backing only if the drawn rect matches the `output_rect`.
+    // This is similar to handling within ComputeScissorRectForRenderPass, and
+    // avoids awkward situations where `output_rect` is larger than
+    // drawn rect.
+    return GetRenderPassBackingDrawnRect(render_pass->id) ==
+           render_pass->output_rect;
   }
 
   return false;
@@ -860,8 +892,10 @@ DirectRenderer::CalculateRenderPassRequirements(
           output_surface_->capabilities().dc_support_level)) {
     // Windows also can support scanout backings for non-root passes to optimize
     // partially delegated compositing iff they will not be read in Viz.
-    requirements.is_scanout |= render_pass->is_from_surface_root_pass &&
-                               !render_pass->will_backing_be_read_by_viz;
+    requirements.is_scanout |=
+        IsLikelyWebPageContent(*render_pass,
+                               *current_frame()->root_render_pass) &&
+        !render_pass->will_backing_be_read_by_viz;
   }
 
   // When kBufferQueuePerRenderPass is enabled, all scanout passes use

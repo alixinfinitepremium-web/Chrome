@@ -3,9 +3,11 @@
 // found in the LICENSE file.
 
 #include <optional>
+#include <string>
 #include <string_view>
 #include <tuple>
 #include <utility>
+#include <vector>
 
 #include "base/auto_reset.h"
 #include "base/base64.h"
@@ -139,8 +141,11 @@
 #include "components/search_engines/template_url_data.h"
 #include "components/search_engines/template_url_service.h"
 #include "components/signin/public/base/signin_buildflags.h"
+#include "components/strings/grit/components_strings.h"
 #include "content/public/browser/favicon_status.h"
 #include "content/public/browser/navigation_entry.h"
+#include "content/public/browser/render_view_host.h"
+#include "content/public/browser/render_widget_host.h"
 #include "content/public/browser/render_widget_host_view.h"
 #include "content/public/browser/web_contents.h"
 #include "content/public/common/content_features.h"
@@ -154,6 +159,8 @@
 #include "net/test/embedded_test_server/embedded_test_server.h"
 #include "net/test/embedded_test_server/http_request.h"
 #include "net/test/embedded_test_server/http_response.h"
+#include "third_party/blink/public/common/input/web_input_event.h"
+#include "third_party/blink/public/common/input/web_mouse_event.h"
 #include "third_party/metrics_proto/omnibox_event.pb.h"
 #include "third_party/omnibox_proto/aim_eligibility_response.pb.h"
 #include "ui/accessibility/ax_action_data.h"
@@ -187,6 +194,7 @@
 #include "ui/touch_selection/touch_editing_controller.h"
 #include "ui/views/bubble/bubble_border.h"
 #include "ui/views/bubble/bubble_dialog_delegate_view.h"
+#include "ui/views/controls/button/button.h"
 #include "ui/views/controls/button/label_button.h"
 #include "ui/views/controls/menu/menu_controller.h"
 #include "ui/views/controls/menu/menu_item_view.h"
@@ -311,6 +319,26 @@ class ContextMenuClipboardTextObserver
 DEFINE_LOCAL_STATE_IDENTIFIER_VALUE(ContextMenuClipboardTextObserver,
                                     kContextMenuClipboardText);
 #endif  // !BUILDFLAG(IS_MAC)
+
+#if BUILDFLAG(IS_CHROMEOS)
+// Returns the first `views::Button` in the view tree rooted at `root` (searched
+// depth-first, starting with `root` itself) whose tooltip is `tooltip`, or null
+// if there is none. Icon-only buttons, such as the app menu's full screen
+// button, have no element identifier, but their tooltip identifies them.
+views::Button* FindButtonByTooltip(views::View* root,
+                                   std::u16string_view tooltip) {
+  if (auto* button = views::AsViewClass<views::Button>(root);
+      button && button->GetTooltipText() == tooltip) {
+    return button;
+  }
+  for (views::View* child : root->children()) {
+    if (views::Button* found = FindButtonByTooltip(child, tooltip)) {
+      return found;
+    }
+  }
+  return nullptr;
+}
+#endif  // BUILDFLAG(IS_CHROMEOS)
 
 }  // namespace
 
@@ -1021,6 +1049,40 @@ class FullWebUIOmniboxInteractiveTestBase
                  MoveMouseTo(kOmniboxElementId), ClickMouse());
   }
 
+  // Synthesizes a double click on the WebUI toolbar WebView at the current
+  // cursor position.
+  auto SynthesizeDoubleClickInToolbarWebUI() {
+    return Do([this]() {
+      auto* browser_view = BrowserView::GetBrowserViewForBrowser(browser());
+      ASSERT_TRUE(browser_view);
+      auto* webui_toolbar = browser_view->toolbar_button_provider()
+                                ->GetWebUIToolbarViewForTesting();
+      ASSERT_TRUE(webui_toolbar);
+      views::WebView* web_view = webui_toolbar->GetWebViewForTesting();
+      ASSERT_TRUE(web_view);
+      content::RenderWidgetHost* widget =
+          web_view->GetWebContents()->GetRenderViewHost()->GetWidget();
+      ASSERT_TRUE(widget);
+
+      const gfx::Point point = display::Screen::Get()->GetCursorScreenPoint();
+      for (int click = 1; click <= 2; ++click) {
+        blink::WebMouseEvent mouse_event(
+            blink::WebInputEvent::Type::kMouseDown,
+            blink::WebInputEvent::kNoModifiers,
+            blink::WebInputEvent::GetStaticTimeStampForTests());
+        mouse_event.button = blink::WebMouseEvent::Button::kLeft;
+        mouse_event.click_count = click;
+        mouse_event.SetPositionInWidget(
+            point.x() - web_view->GetBoundsInScreen().x(),
+            point.y() - web_view->GetBoundsInScreen().y());
+        mouse_event.SetPositionInScreen(point.x(), point.y());
+        widget->ForwardMouseEvent(mouse_event);
+        mouse_event.SetType(blink::WebInputEvent::Type::kMouseUp);
+        widget->ForwardMouseEvent(mouse_event);
+      }
+    });
+  }
+
   // Returns `target_browser`'s popup widget, or null if there is none (it is
   // destroyed on hide when `kOmniboxFullWebUIDestroyWidgetOnHide` is enabled).
   static views::Widget* GetPopupWidget(BrowserWindowInterface* target_browser) {
@@ -1267,23 +1329,33 @@ class FullWebUIOmniboxInteractiveTestBase
                  FocusOmniboxAndWaitForPopupReady());
   }
 
-  // Clicks the unfocused omnibox, and waits until the popup is the Full popup,
-  // with its input focused, no user input, and the dropdown visible with the
-  // results of the zero-prefix query that the click started.
-  auto ClickUnfocusedOmniboxAndWaitForZeroSuggestDropdown() {
+  // Waits until `AutocompleteController::result()` is empty (e.g. after WebUI
+  // stops autocomplete over Mojo).
+  auto WaitForAutocompleteResultEmpty() {
+    return PollUntil(
+        [this]() {
+          auto* controller = GetOmniboxControllerForTest();
+          return controller &&
+                 controller->autocomplete_controller()->result().empty();
+        },
+        "WaitForAutocompleteResultEmpty");
+  }
+
+  // One-shot counterpart to `WaitForAutocompleteResultEmpty()`.
+  auto CheckAutocompleteResultEmpty() {
+    return CheckResult(
+        [this]() {
+          auto* controller = GetOmniboxControllerForTest();
+          return controller &&
+                 controller->autocomplete_controller()->result().empty();
+        },
+        true, "CheckAutocompleteResultEmpty");
+  }
+
+  // Waits until `AutocompleteController` holds non-empty zero-prefix results
+  // and the popup searchbox's suggestions dropdown is visible with matches.
+  auto WaitForZeroSuggestDropdown() {
     return Steps(
-        // `AutocompleteController::Stop()` doesn't clear `input()`, so with
-        // results left from an earlier zero-prefix query, the wait below could
-        // pass before the click's query reaches the browser.
-        CheckResult(
-            [this]() {
-              auto* controller = GetOmniboxControllerForTest();
-              return controller &&
-                     controller->autocomplete_controller()->result().empty();
-            },
-            true, "CheckNoAutocompleteResultBeforeClick"),
-        ClickUnfocusedOmnibox(), WaitForPopupReady(), WaitForPopupActive(),
-        CheckUserInputInProgress(false),
         PollUntil(
             [this]() {
               auto* controller = GetOmniboxControllerForTest();
@@ -1297,7 +1369,21 @@ class FullWebUIOmniboxInteractiveTestBase
             },
             "WaitForZeroPrefixResult"),
         WaitForJsConditionAt(kPopupWebView, kPopupSearchbox,
-                             "(el) => el && el.dropdownIsVisible"));
+                             "(el) => el && el.dropdownIsVisible && "
+                             "(el.result?.matches?.length ?? 0) > 0"));
+  }
+
+  // Clicks the unfocused omnibox, and waits until the popup is the Full popup,
+  // with its input focused, no user input, and the dropdown visible with the
+  // results of the zero-prefix query that the click started.
+  auto ClickUnfocusedOmniboxAndWaitForZeroSuggestDropdown() {
+    return Steps(
+        // `AutocompleteController::Stop()` doesn't clear `input()`, so with
+        // results left from an earlier zero-prefix query, the wait below could
+        // pass before the click's query reaches the browser.
+        CheckAutocompleteResultEmpty(), ClickUnfocusedOmnibox(),
+        WaitForPopupReady(), WaitForPopupActive(),
+        CheckUserInputInProgress(false), WaitForZeroSuggestDropdown());
   }
 
   // Checks that the omnibox's page classification satisfies `predicate`, e.g.
@@ -3870,6 +3956,39 @@ IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
       WaitForImmersiveTopChromeHidden());
 }
 
+// Verifies that clicking the app menu's full screen button with the omnibox
+// focused on the NTP blurs the omnibox, so that immersive fullscreen hides top
+// chrome instead of keeping it revealed for the focused popup. See b/581620681.
+IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
+                       FullscreenFromAppMenuBlursFocusedOmnibox) {
+  static constexpr char kFullscreenButton[] = "FullscreenButton";
+  const std::u16string fullscreen_tooltip =
+      l10n_util::GetStringUTF16(IDS_ACCNAME_FULLSCREEN);
+  const ui::ElementContext browser_context =
+      BrowserView::GetBrowserViewForBrowser(browser())->GetElementContext();
+  RunTestSequence(
+      FocusOmniboxOnInitialNtp(kTab1), WaitForPopupActive(),
+      InContext(browser_context, MoveMouseTo(kToolbarAppMenuButtonElementId)),
+      InSameContextAs(OmniboxPopupPresenter::kRoundedResultsFrame,
+                      ClickMouse()),
+      InAnyContext(WaitForShow(AppMenuModel::kMoreToolsMenuItem)),
+      // The full screen button in the menu's zoom row has no element
+      // identifier, so find it among the menu's views by its tooltip.
+      InAnyContext(NameViewRelative(
+          AppMenuModel::kMoreToolsMenuItem, kFullscreenButton,
+          [fullscreen_tooltip](views::View* menu_item) -> views::View* {
+            return FindButtonByTooltip(menu_item->GetWidget()->GetRootView(),
+                                       fullscreen_tooltip);
+          })),
+      InAnyContext(Steps(ScrollIntoView(kFullscreenButton),
+                         MoveMouseTo(kFullscreenButton), ClickMouse())),
+      PollUntil([this]() { return browser()->GetWindow()->IsFullscreen(); },
+                "WaitForFullscreen"),
+      InAnyContext(WaitForHide(AppMenuModel::kMoreToolsMenuItem)),
+      WaitForPopupDismissed(), WaitForOmniboxFocus(false),
+      WaitForImmersiveTopChromeHidden());
+}
+
 IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
                        FullscreenBlursOmniboxAndKeepsDraftPopup) {
   RunTestSequence(
@@ -4379,6 +4498,70 @@ class AutocompleteStartCounter : public AutocompleteController::Observer {
 
 }  // namespace
 
+// Verifies that pressing Ctrl+L / Cmd+L with the page focused, while the popup
+// is open with a draft in the unfocused omnibox,
+// refocuses the omnibox without starting another autocomplete query.
+//
+// The page has to be focused first, since while the popup is focused, Ctrl+L /
+// Cmd+L is consumed by the WebUI (`onInputWrapperKeydown()` in
+// omnibox_popup_searchbox.ts) and never reaches
+// `WebUILocationBar::HandleFocusRequestForFullPopup()`. The test types a draft
+// because the draft is what keeps the popup open once the page is focused, even
+// though the suggestions dropdown closes. Without a draft, focusing the page
+// would close the popup, leaving no open popup for Ctrl+L / Cmd+L to act on.
+IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
+                       FocusLocationShortcutOnUnfocusedDraftDoesNotRequery) {
+  std::unique_ptr<AutocompleteStartCounter> start_counter;
+  RunTestSequence(
+      OpenInitialTabAndFocusOmnibox(kTab1, GURL("chrome://version/")),
+      InputWebUIText("ffffff"),
+      // Focusing the page closes the suggestions dropdown, but the draft keeps
+      // the popup open.
+      ClickWebPageBody(kTab1),
+      InAnyContext(WaitForShow(OmniboxPopupPresenter::kRoundedResultsFrame)),
+      WaitForVisibleOmniboxUnfocused(), WaitForPopupTransitionLockout(),
+      Do([this, &start_counter]() {
+        start_counter = std::make_unique<AutocompleteStartCounter>(
+            GetOmniboxControllerForTest()->autocomplete_controller());
+      }),
+      // Press Ctrl+L / Cmd+L with the page focused.
+      SendKeyPress(kBrowserViewElementId, ui::VKEY_L,
+                   ui::EF_PLATFORM_ACCELERATOR),
+      WaitForOmniboxFocus(true), WaitForWebUIInputValue("ffffff"),
+      // Give any query started by the focus request time to reach the browser.
+      WaitForPopupTransitionLockout(),
+      CheckResult([&start_counter]() { return start_counter->count(); }, 0,
+                  "CheckNoNewAutocompleteQuery"),
+      Do([&start_counter]() { start_counter.reset(); }));
+}
+
+// Verifies that calling FocusLocationBar (such as from the Chrome menu or
+// window reactivation) while the omnibox is already focused with zero-suggest
+// open does not start another autocomplete query or dismiss suggestions.
+IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
+                       FocusLocationBarWhileZeroSuggestOpenDoesNotRequery) {
+  ASSERT_TRUE(embedded_https_test_server().Start());
+  const GURL url = embedded_https_test_server().GetURL("/title1.html");
+
+  std::unique_ptr<AutocompleteStartCounter> start_counter;
+  RunTestSequence(
+      WaitForBrowserActive(), AddInstrumentedTab(kTab1, url),
+      WaitForWebContentsReady(kTab1), WaitForPopupDismissed(),
+      CheckPageClassification(&omnibox::IsOtherWebPage),
+      ClickUnfocusedOmniboxAndWaitForZeroSuggestDropdown(),
+      Do([this, &start_counter]() {
+        start_counter = std::make_unique<AutocompleteStartCounter>(
+            GetOmniboxControllerForTest()->autocomplete_controller());
+      }),
+      Do([this]() { chrome::FocusLocationBar(browser()); }),
+      WaitForOmniboxFocus(true),
+      // Give any query started by the focus request time to reach the browser.
+      WaitForPopupTransitionLockout(),
+      CheckResult([&start_counter]() { return start_counter->count(); }, 0,
+                  "CheckNoNewAutocompleteQuery"),
+      Do([&start_counter]() { start_counter.reset(); }));
+}
+
 // Verifies that drag-selecting part of the URL in the unfocused location bar
 // hands focus and the selection off to the WebUI popup without querying
 // zero-prefix suggestions.
@@ -4478,6 +4661,50 @@ IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
           kPopupWebView, kPopupSearchbox,
           "(el) => el.activeQueryId === Number(el.dataset.firstQueryId)",
           true)),
+      InAnyContext(CheckJsResultAt(kPopupWebView, kPopupSearchbox,
+                                   "(el) => el.dropdownIsVisible", true)));
+}
+
+// Verifies that double-clicking an elided URL in the unfocused WebUI location
+// bar, where the second click unelides the URL and selects only part of it,
+// keeps the dropdown opened by the first click and preserves its matches.
+IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
+                       WebUIDoubleClickOnElidedUrlKeepsDropdownOpen) {
+  if (!features::IsWebUILocationBarEnabled()) {
+    GTEST_SKIP() << "Only applies to the WebUI location bar.";
+  }
+  if (!base::FeatureList::IsEnabled(
+          omnibox::kWebUIOmniboxFullPopupDoubleClick)) {
+    GTEST_SKIP() << "Requires kWebUIOmniboxFullPopupDoubleClick.";
+  }
+  net::EmbeddedTestServer https_server(net::EmbeddedTestServer::TYPE_HTTPS);
+  https_server.ServeFilesFromSourceDirectory("chrome/test/data");
+  ASSERT_TRUE(https_server.Start());
+  const GURL url = https_server.GetURL("/title1.html");
+
+  RunTestSequence(
+      WaitForBrowserActive(), AddInstrumentedTab(kTab1, url),
+      WaitForWebContentsReady(kTab1), WaitForPopupTransitionLockout(),
+      WaitForPopupHandlerReady(),
+      InAnyContext(MoveMouseTo(
+          kOmniboxElementId,
+          base::BindOnce(
+              [](ui::TrackedElement* reference_element) -> gfx::Point {
+                // Return somewhere in the first word --- a bit to the
+                // right of left-center.
+                return reference_element->GetScreenBounds().left_center() +
+                       gfx::Vector2d(10, 0);
+              }))),
+      // Double-click on the first word of the elided URL.
+      SynthesizeDoubleClickInToolbarWebUI(), WaitForPopupReady(),
+      WaitForWebUIInputValue(url.spec()),
+      WaitForJsConditionAt(kPopupWebView, kWebUIInput,
+                           kHasPartialWebUIInputSelection),
+      WaitForJsConditionAt(kPopupWebView, kPopupSearchbox,
+                           "(el) => el && el.dropdownIsVisible"),
+      // Only one zero-prefix query is issued and its matches are preserved.
+      InAnyContext(CheckJsResultAt(kPopupWebView, kPopupSearchbox,
+                                   "(el) => el.activeQueryId", 0)),
       InAnyContext(CheckJsResultAt(kPopupWebView, kPopupSearchbox,
                                    "(el) => el.dropdownIsVisible", true)));
 }
@@ -5195,14 +5422,7 @@ IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
                   WaitForShow(OmniboxContextMenuMixinBase::kPasteMenuItem),
                   // The suggestions dropdown is closed (checked in C++, since
                   // the WebUI can't be queried while the menu is open).
-                  CheckResult(
-                      [this]() {
-                        return GetOmniboxControllerForTest()
-                            ->autocomplete_controller()
-                            ->result()
-                            .empty();
-                      },
-                      true, "NoSuggestionsWhileContextMenuIsShown"),
+                  CheckAutocompleteResultEmpty(),
                   SelectMenuItem(OmniboxContextMenuMixinBase::kPasteMenuItem))),
               InAnyContext(
                   WaitForHide(OmniboxContextMenuMixinBase::kPasteMenuItem)))),
@@ -5266,14 +5486,7 @@ IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
           WaitForShow(OmniboxContextMenuMixinBase::kPasteMenuItem),
           // The suggestions dropdown is closed (checked in C++, since the
           // WebUI can't be queried while the menu is open).
-          CheckResult(
-              [this]() {
-                return GetOmniboxControllerForTest()
-                    ->autocomplete_controller()
-                    ->result()
-                    .empty();
-              },
-              true, "NoSuggestionsWhileContextMenuIsShown"),
+          CheckAutocompleteResultEmpty(),
           SelectMenuItem(OmniboxContextMenuMixinBase::kPasteMenuItem))),
       InAnyContext(WaitForHide(OmniboxContextMenuMixinBase::kPasteMenuItem)),
 #else
@@ -5669,8 +5882,8 @@ IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
 }
 
 // Verifies that typing into the WebUI Omnibox, clicking outside on the webpage
-// body to blur, and then refocusing the location bar (via Ctrl+L) selects all
-// text in the Omnibox.
+// body to blur, and then refocusing the location bar (via Ctrl+L / Cmd+L)
+// selects all text in the Omnibox without reopening the suggestions dropdown.
 IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
                        FocusLocationBarAfterBlurSelectsAll) {
   if (IsWebUIToolbarEnabled()) {
@@ -5680,23 +5893,36 @@ IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
   RunTestSequence(
       // 1. Open the WebUI omnibox.
       OpenInitialTabAndFocusOmnibox(kTab1, GURL("chrome://version/")),
-      // 2. Type into it.
-      InputWebUIText("hello"), WaitForWebUIInputValue("hello"),
-      // 3. Click outside of it.
+      WaitForPopupActive(), WaitForWebUIInputValue("chrome://version"),
+      WaitForWebUIInputAllSelected(),
+      // 2. Type into it and wait for the suggestions dropdown to open.
+      TypeWebUITextWithKeyPresses("hello"),
+      InAnyContext(WaitForWebUIInputValue("hello")),
+      WaitForMatch(kPopupWebView, kFirstSuggestionMatchPrimaryText,
+                   "suggestion-1"),
+      WaitForJsConditionAt(kPopupWebView, kPopupSearchbox,
+                           "(el) => el && el.dropdownIsVisible"),
+      // 3. Click outside of it to blur and collapse the dropdown.
       ClickWebPageBody(kTab1),
       WaitForJsConditionAt(kPopupWebView, kPopupSearchbox,
                            "(el) => el && !el.dropdownIsVisible"),
       WaitForVisibleOmniboxUnfocused(),
-      // 4. Focus the location bar to reopen/refocus it (via Ctrl+L).
+      // 4. Focus the location bar to reopen/refocus it (via Ctrl+L / Cmd+L).
       WaitForPopupTransitionLockout(),
       SendKeyPress(kBrowserViewElementId, ui::VKEY_L,
                    ui::EF_PLATFORM_ACCELERATOR),
       WaitForOmniboxFocus(true),
-      // 5. Verifies that everything is selected.
+      // 5. Verify that everything is selected and the suggestions dropdown
+      // remains closed, with no autocomplete query started.
       InAnyContext(CheckJsResultAt(
           kPopupWebView, kWebUIInput,
           "el => `${el.selectionStart},${el.selectionEnd}`", "0,5")),
-      InAnyContext(CheckWebUIInputSelection(0, 5)));
+      InAnyContext(CheckWebUIInputSelection(0, 5)),
+      CheckPopupState(OmniboxPopupState::kFull), CheckUserInputInProgress(true),
+      InAnyContext(CheckJsResultAt(
+          kPopupWebView, kPopupSearchbox,
+          "(el) => !el.dropdownIsVisible && el.activeQueryId === -1", true)),
+      CheckAutocompleteResultEmpty());
 }
 
 // Verifies that pressing Ctrl+L / Cmd+L when the omnibox is focused on an
@@ -5783,6 +6009,142 @@ IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
           InstrumentNonTabWebView(kPopupWebView, GetActivePopupWebView())),
       WaitForOmniboxFocus(true), WaitForWebUIInputValue(full_url),
       InAnyContext(CheckWebUIInputSelection(0, full_url.length())));
+}
+
+// Verifies that pressing Ctrl+L / Cmd+L on an unfocused New Tab Page opens and
+// focuses the Full WebUI popup with an empty input and shows the zero-prefix
+// suggestions dropdown.
+IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
+                       FocusLocationShortcutFromUnfocusedNtpOpensZeroSuggest) {
+  RunTestSequence(
+      // 1. The initial tab starts on the NTP with the omnibox focused. Click
+      // the page body to unfocus it and dismiss the popup.
+      WaitForBrowserActive(), InstrumentTab(kTab1, 0),
+      WaitForWebContentsReady(kTab1), WaitForPopupReady(), WaitForPopupActive(),
+      ClickWebPageBody(kTab1), WaitForPopupDismissed(),
+      WaitForPopupState(OmniboxPopupState::kNone),
+      UninstrumentWebContents(kPopupWebView), WaitForOmniboxFocus(false),
+      CheckPageClassification(&omnibox::IsNTPPage),
+      WaitForPopupTransitionLockout(), WaitForPopupHandlerReady(),
+      CheckAutocompleteResultEmpty(),
+
+      // 2. Press Ctrl+L / Cmd+L on the unfocused NTP: the popup opens focused
+      // with an empty input and zero-prefix suggestions showing. Send to the
+      // browser window rather than via `PressWebUIAcceleratorKey()` because the
+      // popup is closed here and the browser handles the shortcut.
+      WaitForBrowserWidgetActive(),
+      SendKeyPress(kBrowserViewElementId, ui::VKEY_L,
+                   ui::EF_PLATFORM_ACCELERATOR),
+      WaitForPopupReady(), WaitForPopupActive(),
+      CheckUserInputInProgress(false), WaitForWebUIInputValue(""),
+      InAnyContext(CheckWebUIInputSelection(0, 0)),
+      WaitForZeroSuggestDropdown());
+}
+
+// Verifies that on the New Tab Page, after Escape closes the zero-prefix
+// suggestions dropdown (leaving the omnibox focused with an empty input),
+// pressing Ctrl+L / Cmd+L keeps the omnibox focused and reopens the
+// zero-prefix suggestions dropdown.
+IN_PROC_BROWSER_TEST_P(
+    FullWebUIOmniboxInteractiveTest,
+    FocusLocationShortcutAfterEscapeOnNtpReopensZeroSuggest) {
+  RunTestSequence(
+      // 1. Focus the omnibox on the NTP so zero-prefix suggestions open. The
+      // initial NTP auto-focuses without opening the dropdown, so focus once
+      // more after the popup is ready to query ZPS.
+      FocusOmniboxOnInitialNtp(kTab1), UninstrumentWebContents(kPopupWebView),
+      FocusOmniboxAndWaitForPopupReady(), WaitForPopupActive(),
+      CheckPageClassification(&omnibox::IsNTPPage),
+      WaitForZeroSuggestDropdown(), WaitForWebUIInputValue(""),
+
+      // 2. Press Escape once to close the suggestions dropdown while keeping
+      // the omnibox focused with an empty input.
+      InAnyContext(SendKeyPress(kPopupWebView, ui::VKEY_ESCAPE, ui::EF_NONE)),
+      WaitForJsConditionAt(kPopupWebView, kPopupSearchbox,
+                           "(el) => el && !el.dropdownIsVisible"),
+      WaitForAutocompleteResultEmpty(), WaitForWebUIInputValue(""),
+      InAnyContext(CheckWebUIInputSelection(0, 0)), WaitForOmniboxFocus(true),
+      CheckPopupState(OmniboxPopupState::kFull),
+
+      // 3. Press Ctrl+L / Cmd+L: the zero-prefix suggestions dropdown reopens
+      // while the input stays empty and focused.
+      PressWebUIAcceleratorKey(ui::VKEY_L), WaitForOmniboxFocus(true),
+      CheckUserInputInProgress(false), WaitForWebUIInputValue(""),
+      InAnyContext(CheckWebUIInputSelection(0, 0)),
+      WaitForZeroSuggestDropdown());
+}
+
+// Verifies that on an HTTPS web page, pressing Ctrl+L / Cmd+L after Escape:
+// (a) when Escape closed the zero-prefix suggestions dropdown while keeping the
+//     omnibox focused on the elided URL, unelides and selects the full URL and
+//     reopens the zero-prefix suggestions dropdown; and
+// (b) when a second Escape blurred the omnibox and dismissed the popup,
+//     reopens and focuses the popup with the full URL selected and the
+//     zero-prefix suggestions dropdown showing.
+IN_PROC_BROWSER_TEST_P(
+    FullWebUIOmniboxInteractiveTest,
+    FocusLocationShortcutAfterEscapeOnPageUnelidesAndReopensZeroSuggest) {
+  ASSERT_TRUE(embedded_https_test_server().Start());
+  const GURL url = embedded_https_test_server().GetURL("/title1.html");
+  const std::string full_url = url.spec();
+  // Steady-state display text strips the https:// scheme.
+  const std::string display_url = full_url.substr(strlen("https://"));
+
+  RunTestSequence(
+      // 1. Open an HTTPS page and click the unfocused omnibox to open the
+      // zero-prefix suggestions dropdown with the elided URL selected.
+      WaitForBrowserActive(), AddInstrumentedTab(kTab1, url),
+      WaitForWebContentsReady(kTab1), WaitForPopupDismissed(),
+      CheckPageClassification(&omnibox::IsOtherWebPage),
+      ClickUnfocusedOmniboxAndWaitForZeroSuggestDropdown(),
+      WaitForWebUIInputValue(display_url),
+      InAnyContext(CheckWebUIInputSelection(0, display_url.length())),
+
+      // 2. Press Escape once to close the suggestions dropdown while keeping
+      // the omnibox focused on the elided URL.
+      InAnyContext(SendKeyPress(kPopupWebView, ui::VKEY_ESCAPE, ui::EF_NONE)),
+      WaitForJsConditionAt(kPopupWebView, kPopupSearchbox,
+                           "(el) => el && !el.dropdownIsVisible"),
+      WaitForAutocompleteResultEmpty(), WaitForWebUIInputValue(display_url),
+      InAnyContext(CheckWebUIInputSelection(0, display_url.length())),
+      WaitForOmniboxFocus(true),
+
+      // 3. Press Ctrl+L / Cmd+L: the URL unelides to `full_url`, all of it is
+      // selected, and the zero-prefix suggestions dropdown reopens.
+      PressWebUIAcceleratorKey(ui::VKEY_L), WaitForWebUIInputValue(full_url),
+      InAnyContext(CheckWebUIInputSelection(0, full_url.length())),
+      CheckUserInputInProgress(false), WaitForOmniboxFocus(true),
+      WaitForZeroSuggestDropdown(),
+
+      // 4. Press Escape twice to first close the dropdown and then blur the
+      // omnibox and dismiss the popup. Use `ui_controls::SendKeyPress()` for
+      // the second Escape rather than `SendKeyPress(kPopupWebView, ...)`, which
+      // can fail if the popup closes before `SendKeyPressToWindowSync()`
+      // returns.
+      InAnyContext(SendKeyPress(kPopupWebView, ui::VKEY_ESCAPE, ui::EF_NONE)),
+      WaitForJsConditionAt(kPopupWebView, kPopupSearchbox,
+                           "(el) => el && !el.dropdownIsVisible"),
+      WaitForPopupTransitionLockout(), Do([this]() {
+        ASSERT_TRUE(ui_controls::SendKeyPress(
+            GetPopupWidget(browser())->GetNativeWindow(), ui::VKEY_ESCAPE,
+            /*control=*/false, /*shift=*/false, /*alt=*/false,
+            /*command=*/false));
+      }),
+      WaitForPopupDismissed(), WaitForPopupState(OmniboxPopupState::kNone),
+      UninstrumentWebContents(kPopupWebView), WaitForOmniboxFocus(false),
+      WaitForPopupTransitionLockout(), WaitForPopupHandlerReady(),
+      WaitForAutocompleteResultEmpty(),
+
+      // 5. Press Ctrl+L / Cmd+L from the page after Escape blur: the popup
+      // reopens focused with `full_url` selected and zero-prefix suggestions
+      // showing.
+      WaitForBrowserWidgetActive(),
+      SendKeyPress(kBrowserViewElementId, ui::VKEY_L,
+                   ui::EF_PLATFORM_ACCELERATOR),
+      WaitForPopupReady(), WaitForPopupActive(),
+      CheckUserInputInProgress(false), WaitForWebUIInputValue(full_url),
+      InAnyContext(CheckWebUIInputSelection(0, full_url.length())),
+      WaitForZeroSuggestDropdown());
 }
 
 // Verifies that text typed into the omnibox at startup reaches WebUI, whether
@@ -7091,8 +7453,9 @@ IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxZpsInteractiveTest, ZpsShownOnFocus) {
 }
 
 // Verifies that from a highlighted ZPS match, Escape #1 reverts the input to
-// the typed text (""), keeping the dropdown open; Escape #2 closes the
-// dropdown, keeping the omnibox focused; and ArrowDown then reopens ZPS.
+// the typed text (""), keeping the dropdown open with nothing highlighted;
+// Escape #2 closes the dropdown, keeping the omnibox focused; and ArrowDown
+// then reopens ZPS.
 IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxZpsInteractiveTest,
                        DoubleEscapeFromZpsMatchThenArrowDownReopensZps) {
   RunTestSequence(
@@ -7100,16 +7463,79 @@ IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxZpsInteractiveTest,
       // Highlight the second match, which fills its text into the input.
       PressKey(ui::VKEY_DOWN), WaitForWebUIInputValue(kZpsMatch0),
       PressKey(ui::VKEY_DOWN), WaitForWebUIInputValue(kZpsMatch1),
-      // Escape #1 reverts the input and selects the first match, keeping the
-      // dropdown open.
+      // Escape #1 reverts the input, keeping the dropdown open. ZPS has no
+      // default match, so nothing is highlighted.
       PressKey(ui::VKEY_ESCAPE), WaitForWebUIInputValue(""),
       WaitForJsConditionAt(kPopupWebView, kPopupSearchbox,
                            "(el) => el && el.dropdownIsVisible && "
-                           "el.selection?.line === 0"),
+                           "el.selection?.line === -1"),
       // Escape #2 closes the dropdown.
       PressKey(ui::VKEY_ESCAPE), WaitForDropdownClosedWithEmptyInput(),
       // ArrowDown reopens ZPS.
       PressKey(ui::VKEY_DOWN), WaitForZpsShown());
+}
+
+// Verifies that Escape from the *first* ZPS match reverts the temporary text
+// in the WebUI and in the native omnibox alike, keeping the dropdown open with
+// nothing highlighted, and that a second Escape then closes the dropdown. ZPS
+// has no default match, so the first match is temporary text like any other.
+IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxZpsInteractiveTest,
+                       EscapeFromFirstZpsMatchRevertsTemporaryText) {
+  RunTestSequence(
+      FocusOmniboxOnNtpAndWaitForZps(),
+      // Highlight the first match, which fills its text into the input and
+      // into the native omnibox.
+      PressKey(ui::VKEY_DOWN), WaitForWebUIInputValue(kZpsMatch0),
+      WaitForOmniboxText(base::ASCIIToUTF16(std::string_view(kZpsMatch0))),
+      // Escape #1 reverts both, keeping the dropdown open with no selection.
+      PressKey(ui::VKEY_ESCAPE), WaitForWebUIInputValue(""),
+      WaitForOmniboxText(u""),
+      WaitForJsConditionAt(kPopupWebView, kPopupSearchbox,
+                           "(el) => el && el.dropdownIsVisible && "
+                           "el.selection?.line === -1"),
+      // Escape #2 closes the dropdown.
+      PressKey(ui::VKEY_ESCAPE), WaitForDropdownClosedWithEmptyInput());
+}
+
+// Verifies that on a regular web page (non-NTP), Escape from a highlighted ZPS
+// match reverts both the WebUI input and the native omnibox back to the page's
+// permanent URL, keeping the dropdown open with nothing highlighted, and that
+// a second Escape closes the dropdown while preserving the permanent URL.
+IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxZpsInteractiveTest,
+                       EscapeFromZpsMatchOnWebPageRevertsToPermanentUrl) {
+  ASSERT_TRUE(embedded_https_test_server().Start());
+  const GURL url = embedded_https_test_server().GetURL("/title1.html");
+  // Steady-state display text strips the https:// scheme.
+  const std::string display_url = url.spec().substr(strlen("https://"));
+  const std::u16string display_url16 = base::ASCIIToUTF16(display_url);
+  const std::string zps_text =
+      l10n_util::GetStringUTF8(IDS_CONTEXTUAL_SEARCH_OPEN_LENS_ACTION_LABEL);
+  const std::u16string zps_text16 =
+      l10n_util::GetStringUTF16(IDS_CONTEXTUAL_SEARCH_OPEN_LENS_ACTION_LABEL);
+
+  RunTestSequence(
+      WaitForBrowserActive(), AddInstrumentedTab(kTab1, url),
+      WaitForWebContentsReady(kTab1), WaitForPopupDismissed(),
+      CheckPageClassification(&omnibox::IsOtherWebPage),
+      ClickUnfocusedOmniboxAndWaitForZeroSuggestDropdown(),
+      WaitForWebUIInputValue(display_url), WaitForOmniboxText(display_url16),
+      // Highlight the ZPS match, which previews its text in both the WebUI
+      // input and the native omnibox.
+      PressKey(ui::VKEY_DOWN), WaitForWebUIInputValue(zps_text),
+      WaitForOmniboxText(zps_text16),
+      // Escape #1 reverts both back to the permanent URL, keeping the dropdown
+      // open with no selection.
+      PressKey(ui::VKEY_ESCAPE), WaitForWebUIInputValue(display_url),
+      WaitForOmniboxText(display_url16),
+      WaitForJsConditionAt(kPopupWebView, kPopupSearchbox,
+                           "(el) => el && el.dropdownIsVisible && "
+                           "el.selection?.line === -1"),
+      // Escape #2 closes the dropdown, keeping the permanent URL and focus.
+      PressKey(ui::VKEY_ESCAPE),
+      WaitForJsConditionAt(kPopupWebView, kPopupSearchbox,
+                           "(el) => el && !el.dropdownIsVisible"),
+      WaitForWebUIInputValue(display_url), WaitForOmniboxText(display_url16),
+      WaitForOmniboxFocus(true));
 }
 
 // Verifies that after typing a query, Escape #1 closes the dropdown, keeping
@@ -7192,21 +7618,10 @@ INSTANTIATE_TEST_SUITE_P(All,
                                              : "WebUIToolbarDisabled";
                          });
 
-// Runs only with the Views toolbar. With the WebUI toolbar, a click on the
-// unfocused omnibox on the New Tab Page or a search results page makes the
-// popup start two zero-prefix queries (`WebUIReadOnlyOmnibox::OnPointer()`
-// both opens the popup with `query_zps` and syncs its state with
-// `MatchesUpdate::kQueryZps`). The second clears the matches of the first, and
-// is dropped while the first is still running, so the dropdown can stay hidden.
-// TODO(b/578537342): Also run with the WebUI toolbar once a click starts only
-// one zero-prefix query.
-class FullWebUIOmniboxViewsToolbarInteractiveTest
-    : public FullWebUIOmniboxInteractiveTest {};
-
 // Verifies that a real click on the unfocused omnibox on the New Tab Page opens
 // the Full popup with its (empty) input focused and the zero-prefix suggestions
 // dropdown showing.
-IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxViewsToolbarInteractiveTest,
+IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxInteractiveTest,
                        ClickUnfocusedOmniboxOnNtpOpensZeroSuggest) {
   RunTestSequence(
       // The initial NTP focuses the omnibox without opening the dropdown.
@@ -7227,13 +7642,6 @@ IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxViewsToolbarInteractiveTest,
       ClickUnfocusedOmniboxAndWaitForZeroSuggestDropdown(),
       WaitForWebUIInputValue(""));
 }
-
-INSTANTIATE_TEST_SUITE_P(All,
-                         FullWebUIOmniboxViewsToolbarInteractiveTest,
-                         testing::Values(false),
-                         [](const testing::TestParamInfo<bool>&) {
-                           return "WebUIToolbarDisabled";
-                         });
 
 // Tests dropping text, a link or a bookmark on the unfocused native omnibox
 // (`OmniboxViewViews`). Runs only with the Views toolbar: with the WebUI
@@ -7453,10 +7861,10 @@ INSTANTIATE_TEST_SUITE_P(All,
 // HTTPS test server. The default (Google) search engine's search and suggest
 // URLs are then on that server, which serves a page for its search URL.
 class FullWebUIOmniboxFakeGoogleSrpInteractiveTest
-    : public FullWebUIOmniboxViewsToolbarInteractiveTest {
+    : public FullWebUIOmniboxInteractiveTest {
  public:
   void SetUpCommandLine(base::CommandLine* command_line) override {
-    FullWebUIOmniboxViewsToolbarInteractiveTest::SetUpCommandLine(command_line);
+    FullWebUIOmniboxInteractiveTest::SetUpCommandLine(command_line);
     embedded_https_test_server().RegisterRequestHandler(
         base::BindRepeating(&ServeSearchResultsPage));
     ASSERT_TRUE(embedded_https_test_server().InitializeAndListen());
@@ -7472,7 +7880,7 @@ class FullWebUIOmniboxFakeGoogleSrpInteractiveTest
     // URL (e.g. for the One Google Bar). Serving only from
     // `SetUpOnMainThread()`, which runs after that wait, can deadlock.
     embedded_https_test_server().StartAcceptingConnections();
-    FullWebUIOmniboxViewsToolbarInteractiveTest::PreRunTestOnMainThread();
+    FullWebUIOmniboxInteractiveTest::PreRunTestOnMainThread();
   }
 
  private:
@@ -7504,9 +7912,10 @@ IN_PROC_BROWSER_TEST_P(FullWebUIOmniboxFakeGoogleSrpInteractiveTest,
 
 INSTANTIATE_TEST_SUITE_P(All,
                          FullWebUIOmniboxFakeGoogleSrpInteractiveTest,
-                         testing::Values(false),
-                         [](const testing::TestParamInfo<bool>&) {
-                           return "WebUIToolbarDisabled";
+                         testing::Bool(),
+                         [](const testing::TestParamInfo<bool>& info) {
+                           return info.param ? "WebUIToolbarEnabled"
+                                             : "WebUIToolbarDisabled";
                          });
 
 // Not on Mac, where the context menu is a native NSMenu that runs a nested run

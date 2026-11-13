@@ -327,11 +327,6 @@ inline constexpr char kAutomaticUsbDetachName[] =
 inline constexpr char kAutomaticUsbDetachDescription[] =
     "Automatically detach kernel drivers when a USB interface is busy.";
 
-inline constexpr char kAuxiliarySearchDonationName[] =
-    "Auxiliary Search Donation";
-inline constexpr char kAuxiliarySearchDonationDescription[] =
-    "If enabled, override Auxiliary Search donation cap.";
-
 inline constexpr char kAuxiliarySearchHistoryDonationName[] =
     "Auxiliary Search History Donation";
 inline constexpr char kAuxiliarySearchHistoryDonationDescription[] =
@@ -828,11 +823,6 @@ inline constexpr char kEnableFullscreenToAnyScreenAndroidDescription[] =
     "full screen on another screen using the Element.requestFullscreen web "
     "API. This enables usage of the screen parameter in the "
     "Element.requestFullscreen web API.";
-
-inline constexpr char kUseSurfaceViewForThinWebViewName[] =
-    "Use SurfaceView for ThinWebView";
-inline constexpr char kUseSurfaceViewForThinWebViewDescription[] =
-    "Enables the use of SurfaceView for ThinWebView on Android.";
 
 inline constexpr char kUseAndroidStagingSmdsName[] =
     "Use Android staging SM-DS";
@@ -2271,11 +2261,6 @@ inline constexpr char kEnableProcessIsolationUiName[] =
 inline constexpr char kEnableProcessIsolationUiDescription[] =
     "Shows the Enable Process Isolation toggle in chrome://settings/system.";
 
-inline constexpr char kEnableIframeForPixName[] = "Enable Iframe For Pix";
-inline constexpr char kEnableIframeForPixDescription[] =
-    "When enabled, pix pay flow will be triggered when users click the copy "
-    "button within iframe.";
-
 inline constexpr char kDesktopGlowUpName[] = "Desktop Glow Up";
 inline constexpr char kDesktopGlowUpDescription[] =
     "Enables all Desktop Glow Up features.";
@@ -2826,7 +2811,10 @@ inline constexpr char kFedCmIdpLinksDescription[] =
     "When FedCM asks for permission to share data with a site, shows links to "
     "the identity provider's account management page, privacy policy and "
     "terms of service, from the account_management_url, privacy_policy_url and "
-    "terms_of_service_url keys of its well-known file.";
+    "terms_of_service_url keys of its well-known file. In passive mode, FedCM "
+    "then asks for this permission in a modal dialog instead of the bubble, so "
+    "that the links are shown. With multiple identity providers, this also "
+    "requires #fedcm-active-mode-multiple-identity-providers.";
 
 inline constexpr char kFedCmIdPRegistrationName[] =
     "FedCM with IdP Registration support";
@@ -5365,6 +5353,12 @@ inline constexpr char kAccessibilityHandleOccludingViewsDescription[] =
     "When enabled, handle occluding views belonging to overlayed "
     "browser's UI.";
 
+inline constexpr char kAccessibilityMapToNewClassNamesName[] =
+    "Accessibility Map To New Android classNames";
+inline constexpr char kAccessibilityMapToNewClassNamesDescription[] =
+    "When enabled, controls will be mapped to their new Android className "
+    "strings";
+
 inline constexpr char kAccessibilityPopulateSupplementalDescriptionApiName[] =
     "Accessibility populate supplemental description";
 inline constexpr char
@@ -6622,12 +6616,6 @@ inline constexpr char kTabClosureCommittedMethodRefactorDescription[] =
     "(tabClosureCommitted, allTabsClosureCommitted, onFinishingTabClosure, "
     "and onFinishingMultipleTabClosure) into the unified onTabCloseCommitted "
     "method.";
-
-inline constexpr char kTabClosureMethodRefactorName[] =
-    "Tab closure method refactor";
-inline constexpr char kTabClosureMethodRefactorDescription[] =
-    "Enables the refactored changes for tab closure methods where existing "
-    "methods usages are switched off and newly introduced are made active.";
 
 inline constexpr char kTabGroupActionsSubmenusName[] =
     "Tab Group Actions Submenus";

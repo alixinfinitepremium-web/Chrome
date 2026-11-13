@@ -205,6 +205,16 @@ class FedCmAccountSelectionView : public AccountSelectionView,
   bool OnAccountSelected(const IdentityRequestAccountPtr& account,
                          const ui::Event& event);
 
+  // Returns whether selecting `account` in the bubble replaces the bubble with
+  // the modal dialog's request permission sheet, which also shows the identity
+  // provider's links, instead of asking for permission in the bubble. If so,
+  // the bubble doesn't show disclosure text for `account`. True only with
+  // `kFedCmIdpLinks`, and if `account` needs permission to share its `fields`.
+  // With multiple identity providers, it also requires
+  // `kFedCmActiveModeMultipleIdentityProviders` to be enabled.
+  bool ShouldSwitchToModalForPermission(
+      const content::IdentityRequestAccount& account) const;
+
   // Called when the user clicks the RP's "privacy policy" or "terms of service"
   // link, or one of the identity provider's links (`LinkType::IDP_LINK`).
   void OnLinkClicked(
@@ -490,11 +500,12 @@ class FedCmAccountSelectionView : public AccountSelectionView,
       std::optional<size_t> selected_account_index);
 
   // Shows the request permission dialog with the disclosure text for `account`
-  // in the modal dialog, after the user accepted the ambient bubble. Used for
-  // accounts that require disclosure text, e.g. new accounts. The rest of the
-  // flow is handled by the regular modal dialog logic.
-  void ShowAmbientRequestPermissionModal(
-      const IdentityRequestAccountPtr& account);
+  // in the modal dialog, in passive mode: after the user accepted the ambient
+  // bubble, or selected `account` in the bubble when
+  // `ShouldSwitchToModalForPermission()` is true. Used for accounts that
+  // require disclosure text, e.g. new accounts. The rest of the flow is handled
+  // by the regular modal dialog logic.
+  void ShowRequestPermissionModal(const IdentityRequestAccountPtr& account);
 
   // Cancels the outstanding ambient bubble request, if any, e.g. because the
   // FedCM UI is closed or replaced. A decision on the bubble that has not been
@@ -514,6 +525,11 @@ class FedCmAccountSelectionView : public AccountSelectionView,
   // This should be called exactly once when the dialog is dismissed.
   using DismissReason = content::IdentityRequestDialogController::DismissReason;
   void LogDialogDismissal(DismissReason dismiss_reason);
+
+  // Closes the existing dialog widget and resets `account_selection_view_`
+  // without notifying `delegate_` when `CreateOrUpdateViewAndWidget()` cannot
+  // reuse them, e.g. for a multi-IDP bubble or a dialog without modal support.
+  void MaybeResetViewAndWidget(bool has_modal_support);
 
   // Creates account_selection_view_ (different subclasses for
   // bubble/modal) and dialog_widget_ if it hasn't been created yet.

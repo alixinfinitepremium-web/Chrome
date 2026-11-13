@@ -688,6 +688,7 @@ if (is_android) {
       "//chrome/browser/engagement:android_browsertests",
       "//chrome/browser/enterprise/data_controls",
       "//chrome/browser/enterprise/data_controls:android_browsertests",
+      "//chrome/browser/enterprise/net:browser_test_support_java",
       "//chrome/browser/enterprise/platform_auth:android_browsertests",
       "//chrome/browser/enterprise/platform_auth:features",
       "//chrome/browser/enterprise/platform_auth:test_utils",
@@ -1511,7 +1512,6 @@ if (!is_android) {
       "//chrome:browser_tests_pak",
       "//chrome/browser/resources/media/mei_preload:component",
       "//chrome/browser/web_applications/isolated_web_apps/key_distribution/preload:component",
-      "//chrome/test/data/cast:generate_test_files",
       "//components/policy/proto",
       "//testing:test_scripts_shared",
       "//testing/buildbot/filters:browser_tests_filters",
@@ -2522,6 +2522,7 @@ test("unit_tests") {
     "//chrome/browser/device_reauth:unit_tests",
     "//chrome/browser/devtools:unit_tests",
     "//chrome/browser/digital_credentials:unit_tests",
+    "//chrome/browser/dino:unit_tests",
     "//chrome/browser/downgrade:unit_tests",
     "//chrome/browser/download:unit_tests",
     "//chrome/browser/engagement:unit_tests",
@@ -3616,44 +3617,9 @@ if (is_chromeos) {
   # These tests are only meant to run on an FYI bot because they
   # test against live sites, as a way to catch potential regressions.
   test("accessibility_live_site_tests") {
-    ldflags = []
-
     deps = [
-      ":test_support",
-      "//chrome:packed_resources",
-      "//chrome:resources",
-      "//chrome:strings",
-      "//chrome/browser",
       "//chrome/browser/ash/accessibility:live_site_tests",
-      "//chrome/browser/devtools",
-      "//chrome/renderer",
-      "//chrome/test/base:chrome_test_launcher",
-      "//chrome/test/base:chrome_test_suite",
       "//chrome/test/base:interactive_ui_tests_runner",
-      "//components/resources",
-      "//components/sync",
-      "//components/sync:test_support",
-      "//content/test:test_support",
-      "//crypto:test_support",
-      "//extensions/buildflags",
-      "//google_apis:test_support",
-      "//google_apis/common:test_support",
-      "//google_apis/drive",
-      "//net",
-      "//net:net_resources",
-      "//net:test_support",
-      "//skia",
-      "//testing/gmock",
-      "//testing/gtest",
-      "//third_party/hunspell",
-      "//third_party/icu",
-      "//third_party/libpng:libpng_for_testonly",
-      "//ui/base:test_support",
-      "//ui/events:test_support",
-      "//ui/ozone",
-      "//ui/platform_window/common",
-      "//ui/resources:ui_test_pak",
-      "//ui/web_dialogs:test_support",
     ]
   }
 }

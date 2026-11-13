@@ -2496,6 +2496,27 @@
             ]
         }
     ],
+    "AutofillOnTypingIgnoresAutocompleteOff": [
+        {
+            "platforms": [
+                "android",
+                "android_desktop",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillOnTypingIgnoresAutocompleteOff"
+                    ]
+                }
+            ]
+        }
+    ],
     "AutofillOnlyConsiderSingleFieldFormsAsSearchForms": [
         {
             "platforms": [
@@ -4113,6 +4134,24 @@
                     "name": "Enabled",
                     "enable_features": [
                         "CastMirroringNativeNV12"
+                    ]
+                }
+            ]
+        }
+    ],
+    "CastStreaming60fps": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20261113",
+                    "enable_features": [
+                        "CastStreaming60fps"
                     ]
                 }
             ]
@@ -7541,7 +7580,8 @@
                         "dse_preload2_initial_no_vary_search_hint": "",
                         "dse_preload2_prefetch_priority_policy": "SearchPrefetchCompat",
                         "force_wait_no_vary_search_header_policy": "AlwaysUse",
-                        "use_block_until_head_timeout": "false"
+                        "use_block_until_head_timeout": "false",
+                        "use_prefetch_loader_timeout": "false"
                     },
                     "enable_features": [
                         "DsePreload2",
@@ -13037,6 +13077,27 @@
             ]
         }
     ],
+    "MojoChannelAssociatedSendUsesRunOrPostTask": [
+        {
+            "platforms": [
+                "android",
+                "android_desktop",
+                "android_webview",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "MojoChannelAssociatedSendUsesRunOrPostTask"
+                    ]
+                }
+            ]
+        }
+    ],
     "MojoFixGeometricBufferGrowth2": [
         {
             "platforms": [
@@ -14911,6 +14972,24 @@
                     "name": "Enabled",
                     "enable_features": [
                         "PageActionAnchoredMessageEasyDismiss"
+                    ]
+                }
+            ]
+        }
+    ],
+    "PageActionsFocusChangeOptimizations": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "PageActionsFocusChangeOptimizations"
                     ]
                 }
             ]
@@ -19366,22 +19445,6 @@
             ]
         }
     ],
-    "TabUiDataVirtualization": [
-        {
-            "platforms": [
-                "android",
-                "android_desktop"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "TabUiDataVirtualization"
-                    ]
-                }
-            ]
-        }
-    ],
     "TaiyakiNonListItem": [
         {
             "platforms": [
@@ -19523,12 +19586,26 @@
             "platforms": [
                 "android",
                 "android_desktop",
-                "android_webview",
                 "chromeos",
                 "fuchsia",
                 "linux",
                 "mac",
                 "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ThreeDSecureTelemetry"
+                    ]
+                }
+            ]
+        }
+    ],
+    "ThreeDSecureTelemetryForAndroidWebView": [
+        {
+            "platforms": [
+                "android_webview"
             ],
             "experiments": [
                 {

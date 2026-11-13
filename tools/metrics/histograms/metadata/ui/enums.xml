@@ -224,6 +224,18 @@ chromium-metrics-reviews@google.com.
 
 <!-- LINT.ThenChange(//chrome/browser/ui/webui/default_browser/visual_guided_setter_controller_win.h:DefaultBrowserVisualGuideOutcome) -->
 
+<!-- LINT.IfChange(DinoImpressionSource) -->
+
+<enum name="DinoImpressionSource">
+  <int value="0" label="Typed in Omnibox"/>
+  <int value="1" label="Omnibox Generated"/>
+  <int value="2" label="Link"/>
+  <int value="3" label="Other"/>
+  <int value="4" label="Network Error Page"/>
+</enum>
+
+<!-- LINT.ThenChange(//chrome/browser/dino/dino_metrics.h:DinoImpressionSource) -->
+
 <!-- LINT.IfChange(InitialWebUISurfaceSyncResult) -->
 
 <enum name="InitialWebUISurfaceSyncResult">
@@ -1389,6 +1401,7 @@ chromium-metrics-reviews@google.com.
   <int value="125" label="Show skills and extensions"/>
   <int value="126" label="Scheduled restart dialog"/>
   <int value="127" label="Other device tab"/>
+  <int value="128" label="Offers and loyalty cards"/>
 </enum>
 
 <!-- LINT.ThenChange(/chrome/browser/ui/toolbar/app_menu_model.h:AppMenuAction) -->

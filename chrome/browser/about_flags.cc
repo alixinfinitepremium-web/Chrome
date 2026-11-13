@@ -191,7 +191,6 @@
 #include "components/sync_preferences/features.h"
 #include "components/tab_groups/features.h"
 #include "components/themes/cross_device/features.h"
-#include "components/thin_webview/features.h"
 #include "components/touch_to_search/core/browser/contextual_search_field_trial.h"
 #include "components/touch_to_search/core/browser/public.h"
 #include "components/tracing/common/tracing_switches.h"
@@ -2670,25 +2669,6 @@ const FeatureEntry::FeatureVariation
          kAndroidAppIntegrationMultiDataSource_SkipBothDeviceAndSchemaCheck,
          nullptr}};
 
-const FeatureEntry::FeatureParam kAuxiliarySearchDonation_MaxDonation_20[] = {
-    {chrome::android::kAuxiliarySearchMaxBookmarksCountParam.name, "20"},
-    {chrome::android::kAuxiliarySearchMaxTabsCountParam.name, "20"}};
-const FeatureEntry::FeatureParam kAuxiliarySearchDonation_MaxDonation_100[] = {
-    {chrome::android::kAuxiliarySearchMaxBookmarksCountParam.name, "100"},
-    {chrome::android::kAuxiliarySearchMaxTabsCountParam.name, "100"}};
-const FeatureEntry::FeatureParam kAuxiliarySearchDonation_MaxDonation_200[] = {
-    {chrome::android::kAuxiliarySearchMaxBookmarksCountParam.name, "200"},
-    {chrome::android::kAuxiliarySearchMaxTabsCountParam.name, "200"}};
-const FeatureEntry::FeatureParam kAuxiliarySearchDonation_MaxDonation_500[] = {
-    {chrome::android::kAuxiliarySearchMaxBookmarksCountParam.name, "500"},
-    {chrome::android::kAuxiliarySearchMaxTabsCountParam.name, "500"}};
-const FeatureEntry::FeatureVariation kAuxiliarySearchDonationVariations[] = {
-    {"50 counts", kAuxiliarySearchDonation_MaxDonation_20, nullptr},
-    {"100 counts", kAuxiliarySearchDonation_MaxDonation_100, nullptr},
-    {"200 counts", kAuxiliarySearchDonation_MaxDonation_200, nullptr},
-    {"500 counts", kAuxiliarySearchDonation_MaxDonation_500, nullptr},
-};
-
 const FeatureEntry::FeatureParam kNtpAurora_TightPadding[] = {
     {"change_button_color", "true"},
     {"padding_style", "1"}};
@@ -5066,6 +5046,13 @@ const FeatureEntry::FeatureVariation kToolbarGlowUpVariations[] = {
     {"no reload, back, or forward animations",
      kToolbarGlowUpNoReloadBackForward, nullptr}};
 
+const FeatureEntry::FeatureParam
+    kMenuSimplificationGlicSearchAboveSaveAndPrint[] = {
+        {"MenuSimplificationGlicSearchAboveSaveAndPrint", "true"}};
+const FeatureEntry::FeatureVariation kMenuSimplificationVariations[] = {
+    {"glic section above save", kMenuSimplificationGlicSearchAboveSaveAndPrint,
+     nullptr}};
+
 #if !BUILDFLAG(IS_ANDROID)
 const FeatureEntry::FeatureParam kDictationEvalModeParam[] = {
     {"eval_mode", "true"}};
@@ -6267,11 +6254,6 @@ const FeatureEntry kFeatureEntries[] = {
      kOsAndroid,
      FEATURE_VALUE_TYPE(chrome::android::kTabClosureCommittedMethodRefactor)},
 
-    {"tab-closure-method-refactor",
-     flag_descriptions::kTabClosureMethodRefactorName,
-     flag_descriptions::kTabClosureMethodRefactorDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(chrome::android::kTabClosureMethodRefactor)},
-
     {"undoable-tab-closure-rework",
      flag_descriptions::kUndoableTabClosureReworkName,
      flag_descriptions::kUndoableTabClosureReworkDescription, kOsAndroid,
@@ -6463,6 +6445,10 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kAccessibilityHandleOccludingViewsDescription,
      kOsAndroid,
      FEATURE_VALUE_TYPE(features::kAccessibilityHandleOccludingViews)},
+    {"enable-accessibility-map-to-new-class-names",
+     flag_descriptions::kAccessibilityMapToNewClassNamesName,
+     flag_descriptions::kAccessibilityMapToNewClassNamesDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(features::kAccessibilityMapToNewClassNames)},
     {"enable-smart-zoom", flag_descriptions::kSmartZoomName,
      flag_descriptions::kSmartZoomDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(features::kSmartZoom)},
@@ -6733,13 +6719,6 @@ const FeatureEntry kFeatureEntries[] = {
          segmentation_platform::features::kNewTabPageCustomizationV2,
          kNewTabPageCustomizationV2Variations,
          "NewTabPageCustomizationV2")},
-
-    {"auxiliary-search-donation",
-     flag_descriptions::kAuxiliarySearchDonationName,
-     flag_descriptions::kAuxiliarySearchDonationDescription, kOsAndroid,
-     FEATURE_WITH_PARAMS_VALUE_TYPE(chrome::android::kAuxiliarySearchDonation,
-                                    kAuxiliarySearchDonationVariations,
-                                    "AuxiliarySearchDonation")},
 
     {"auxiliary-search-history-donation",
      flag_descriptions::kAuxiliarySearchHistoryDonationName,
@@ -9890,7 +9869,9 @@ const FeatureEntry kFeatureEntries[] = {
 
     {"menu-simplification", flag_descriptions::kMenuSimplificationName,
      flag_descriptions::kMenuSimplificationDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(features::kMenuSimplification)},
+     FEATURE_WITH_PARAMS_VALUE_TYPE(features::kMenuSimplification,
+                                    kMenuSimplificationVariations,
+                                    "MenuSimplification")},
 
     {"webui-refresh-2026", flag_descriptions::kWebuiRefresh2026Name,
      flag_descriptions::kWebuiRefresh2026Description, kOsDesktop,
@@ -10256,10 +10237,6 @@ const FeatureEntry kFeatureEntries[] = {
      kOsAndroid,
      FEATURE_VALUE_TYPE(
          payments::facilitated::kEnablePixPaymentsInLandscapeMode)},
-
-    {"enable-iframe-for-pix", flag_descriptions::kEnableIframeForPixName,
-     flag_descriptions::kEnableIframeForPixDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(payments::facilitated::kEnableIframeForPix)},
 #endif  // BUILDFLAG(IS_ANDROID)
 
     {"enable-standard-device-bound-session-credentials",
@@ -11097,7 +11074,7 @@ const FeatureEntry kFeatureEntries[] = {
     {"enable-oauth-multilogin-standard-cookies-binding",
      flag_descriptions::kEnableOAuthMultiloginStandardCookiesBindingName,
      flag_descriptions::kEnableOAuthMultiloginStandardCookiesBindingDescription,
-     kOsMac | kOsWin | kOsLinux,
+     kOsLinux,
      FEATURE_VALUE_TYPE(
          switches::kEnableOAuthMultiloginStandardCookiesBinding)},
 
@@ -11112,8 +11089,7 @@ const FeatureEntry kFeatureEntries[] = {
 
     {"enable-chrome-refresh-token-binding",
      flag_descriptions::kEnableChromeRefreshTokenBindingName,
-     flag_descriptions::kEnableChromeRefreshTokenBindingDescription,
-     kOsMac | kOsLinux,
+     flag_descriptions::kEnableChromeRefreshTokenBindingDescription, kOsLinux,
      FEATURE_VALUE_TYPE(switches::kEnableChromeRefreshTokenBinding)},
 
     {"enable-chrome-refresh-token-binding-upgrade",
@@ -12775,13 +12751,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kDevToolsProtocolMonitorName,
      flag_descriptions::kDevToolsProtocolMonitorDescription, kOsAll,
      FEATURE_VALUE_TYPE(features::kDevToolsProtocolMonitor)},
-
-#if BUILDFLAG(IS_ANDROID)
-    {"use-surface-view-for-thin-webview",
-     flag_descriptions::kUseSurfaceViewForThinWebViewName,
-     flag_descriptions::kUseSurfaceViewForThinWebViewDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(thin_webview::android::kUseSurfaceViewForThinWebView)},
-#endif
 
     {"bundled-security-settings-secure-dns-v2",
      flag_descriptions::kBundledSecuritySettingsSecureDnsV2Name,

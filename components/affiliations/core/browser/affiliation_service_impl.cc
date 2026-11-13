@@ -5,6 +5,7 @@
 #include "components/affiliations/core/browser/affiliation_service_impl.h"
 
 #include <algorithm>
+#include <optional>
 #include <vector>
 
 #include "base/files/file_path.h"
@@ -49,33 +50,27 @@ FacetURI ConvertGURLToFacet(const GURL& url) {
   }
 }
 
-// Returns FacetURI corresponding to the top level domain of the `facet`.
-// If `kFetchChangePasswordPatterns` is enabled, returns `facet` as a fallback
-// when `facet` is an Android app, eTLD+1 can't be extracted, or `facet` is
-// already a top level domain. Otherwise, returns an empty FacetURI in these
-// cases.
+// Returns FacetURI corresponding to the top level domain of the `facet`, or an
+// empty FacetURI when `facet` is an Android app, eTLD+1 can't be extracted, or
+// `facet` is already a top level domain.
 FacetURI GetFacetForTopLevelDomain(
     FacetURI facet,
     const base::flat_set<std::string>& psl_extension_list) {
-  FacetURI fallback = base::FeatureList::IsEnabled(kFetchChangePasswordPatterns)
-                          ? facet
-                          : FacetURI();
-
   if (!facet.IsValidWebFacetURI()) {
-    return fallback;
+    return FacetURI();
   }
 
   std::string top_domain = GetExtendedTopLevelDomain(
       GURL(facet.canonical_spec()), psl_extension_list);
   if (top_domain.empty()) {
-    return fallback;
+    return FacetURI();
   }
 
   FacetURI result =
       FacetURI::FromPotentiallyInvalidSpec("https://" + top_domain);
 
   if (!result.is_valid() || result == facet) {
-    return fallback;
+    return FacetURI();
   }
 
   return result;
@@ -114,17 +109,50 @@ struct AffiliationServiceImpl::FetchInfo {
     }
   }
 
+  std::optional<ChangePasswordUrlMatch> GetResult(
+      const AffiliationFetcherInterface::ParsedFetchResponse& result) const {
+    GURL change_password_url = GetChangePasswordURL(result);
+    if (change_password_url.is_empty()) {
+      return std::nullopt;
+    }
+    return ChangePasswordUrlMatch(std::move(change_password_url),
+                                  GetAffiliations(result));
+  }
+
+  std::vector<FacetURI> GetAffiliations(
+      const AffiliationFetcherInterface::ParsedFetchResponse& result) const {
+    for (const AffiliatedFacets& affiliated_facets : result.affiliations) {
+      if (std::ranges::contains(affiliated_facets, requested_facet,
+                                &Facet::uri)) {
+        std::vector<FacetURI> uris;
+        uris.reserve(affiliated_facets.size());
+        for (const Facet& facet : affiliated_facets) {
+          uris.push_back(facet.uri);
+        }
+        return base::flat_set<FacetURI>(std::move(uris)).extract();
+      }
+    }
+    return {};
+  }
+
   GURL GetChangePasswordURL(
       const AffiliationFetcherInterface::ParsedFetchResponse& result) const {
-    // If pattern matching is enabled, try to match the requested URL against
-    // patterns defined for the top level domain.
+    // If pattern matching is enabled, match the requested URL against patterns
+    // on the requested facet (covering ePSL domains when `psl_extension_list_`
+    // is empty or stale), or against the top level domain (where the server
+    // normally attaches patterns) only when the requested facet has no
+    // patterns.
     if (base::FeatureList::IsEnabled(kFetchChangePasswordPatterns)) {
-      if (const Facet* facet =
-              FindNonSynthesizedFacet(result.groupings, top_level_domain)) {
-        for (const auto& pattern : facet->change_password_patterns) {
-          if (RE2::FullMatch(requested_url.spec(), pattern.url_pattern_re2)) {
-            return pattern.change_password_url;
+      for (const FacetURI& facet_uri : FacetsToRequest()) {
+        const Facet* facet =
+            FindNonSynthesizedFacet(result.groupings, facet_uri);
+        if (facet && !facet->change_password_patterns.empty()) {
+          for (const auto& pattern : facet->change_password_patterns) {
+            if (RE2::FullMatch(requested_url.spec(), pattern.url_pattern_re2)) {
+              return pattern.change_password_url;
+            }
           }
+          return GURL();
         }
       }
       return GURL();
@@ -145,11 +173,6 @@ struct AffiliationServiceImpl::FetchInfo {
   }
 
   std::vector<FacetURI> FacetsToRequest() const {
-    // Patterns are available only for the top level domain.
-    if (base::FeatureList::IsEnabled(kFetchChangePasswordPatterns)) {
-      return {top_level_domain};
-    }
-
     if (top_level_domain.is_valid() && top_level_domain != requested_facet) {
       return {requested_facet, top_level_domain};
     }
@@ -222,14 +245,14 @@ void AffiliationServiceImpl::FetchChangePasswordURL(
 void AffiliationServiceImpl::OnFetchFinished(
     FetchInfo fetch_info,
     AffiliationFetcherInterface::FetchResult fetch_result) {
-  GURL change_password_url;
+  std::optional<ChangePasswordUrlMatch> result;
   if (fetch_result.IsSuccessful()) {
-    change_password_url =
-        fetch_info.GetChangePasswordURL(fetch_result.data.value());
+    result = fetch_info.GetResult(fetch_result.data.value());
   }
 
   if (fetch_info.callback) {
-    std::move(fetch_info.callback).Run(change_password_url);
+    std::move(fetch_info.callback)
+        .Run(result ? std::move(result->change_password_url) : GURL());
   }
 }
 

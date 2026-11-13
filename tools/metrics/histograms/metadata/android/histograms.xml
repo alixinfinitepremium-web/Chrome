@@ -34,6 +34,15 @@ chromium-metrics-reviews@google.com.
   <variant name=".FirstRunActivity" summary="FirstRunActivity"/>
 </variants>
 
+<!-- LINT.IfChange(AdaptiveUiContainerSuffix) -->
+
+<variants name="AdaptiveUiContainer">
+  <variant name="BottomSheet" summary="BottomSheet"/>
+  <variant name="ModalDialog" summary="ModalDialog"/>
+</variants>
+
+<!-- LINT.ThenChange(//components/browser_ui/adaptive_ui/android/java/src/org/chromium/components/browser_ui/adaptive_ui/AdaptiveUiControllerImpl.java:AdaptiveUiContainerSuffix) -->
+
 <variants name="AndroidFeatureModuleName">
   <variant name="ar" summary="Augmented Reality Module"/>
   <variant name="cablev2_authenticator" summary="caBLEv2 Authenticator Module"/>
@@ -213,6 +222,20 @@ chromium-metrics-reviews@google.com.
       summary="no other tab strip window of the same profile was open"/>
 </variants>
 
+<variants name="NewTabButtonWebUIStartupPhase">
+  <variant name="CommitToDOMContentLoaded"
+      summary="the commit of the WebUI navigation to its DOMContentLoaded
+               event, which covers parsing the HTML and fetching, compiling
+               and evaluating its scripts"/>
+  <variant name="DOMContentLoadedToFirstPaint"
+      summary="the DOMContentLoaded event of the WebUI to the presentation of
+               its first contentful paint, which covers style, layout,
+               raster, GPU channel setup and frame presentation"/>
+  <variant name="NavigationStartToCommit"
+      summary="the start of the WebUI navigation to its commit, which covers
+               the navigation and waiting for the renderer process to start"/>
+</variants>
+
 <variants name="PageContentProvider_Consumer">
   <variant name="" summary="an external app"/>
   <variant name=".Aga" summary="the Google App (AGA)"/>
@@ -347,6 +370,7 @@ chromium-metrics-reviews@google.com.
   <variant name="FeedRefresh" summary="FeedRefresh"/>
   <variant name="FeedV2Refresh" summary="FeedV2Refresh"/>
   <variant name="Gcm" summary="Gcm"/>
+  <variant name="InAppUpdateRestart" summary="InAppUpdateRestart"/>
   <variant name="NotificationScheduler" summary="NotificationScheduler"/>
   <variant name="NotificationService" summary="NotificationService"/>
   <variant name="NotificationServicePreUnsubscribe"
@@ -368,11 +392,6 @@ chromium-metrics-reviews@google.com.
   <variant name="WebviewMinidumpUploading" summary="WebviewMinidumpUploading"/>
   <variant name="WebviewVariationsSeedFetch"
       summary="WebviewVariationsSeedFetch"/>
-</variants>
-
-<variants name="ThumbnailProvider_ClientType">
-  <variant name="DownloadHome" summary="Download home"/>
-  <variant name="NTPSnippets" summary="NTP snippets"/>
 </variants>
 
 <!-- LINT.IfChange(WebViewChromiumStartupMode) -->
@@ -550,6 +569,52 @@ chromium-metrics-reviews@google.com.
     records the button variant currently being shown on the toolbar. Recorded
     for both regular and incognito profiles.
   </summary>
+</histogram>
+
+<histogram name="Android.AdaptiveUi.ContainerShown" enum="AdaptiveUiContainer"
+    expires_after="2027-11-11">
+  <owner>spdonghao@google.com</owner>
+  <owner>adelm@google.com</owner>
+  <summary>
+    Records the container (0 = Bottom Sheet, 1 = Modal Dialog) chosen by the
+    AdaptiveUiController when an entry is shown. Recorded once per show, when
+    the container starts presenting the entry.
+  </summary>
+</histogram>
+
+<histogram name="Android.AdaptiveUi.DismissReason.{Container}"
+    enum="AdaptiveUiDismissReason" expires_after="2027-11-11">
+  <owner>spdonghao@google.com</owner>
+  <owner>adelm@google.com</owner>
+  <summary>
+    Records the DismissReason when an AdaptiveUiEntry targeting {Container} is
+    dismissed after being shown. Recorded once per dismissal of a shown entry.
+  </summary>
+  <token key="Container" variants="AdaptiveUiContainer"/>
+</histogram>
+
+<histogram name="Android.AdaptiveUi.DismissReasonBeforeShown.{Container}"
+    enum="AdaptiveUiDismissReason" expires_after="2027-11-11">
+  <owner>spdonghao@google.com</owner>
+  <owner>adelm@google.com</owner>
+  <summary>
+    Records the DismissReason when an AdaptiveUiEntry targeting {Container} is
+    dismissed before the container ever showed it (e.g. while queued or during
+    teardown). Recorded once per dismissal of a never-shown entry.
+  </summary>
+  <token key="Container" variants="AdaptiveUiContainer"/>
+</histogram>
+
+<histogram name="Android.AdaptiveUi.EntryDeferred.{Container}" enum="Boolean"
+    expires_after="2027-11-11">
+  <owner>spdonghao@google.com</owner>
+  <owner>adelm@google.com</owner>
+  <summary>
+    Records whether an AdaptiveUiEntry targeting {Container} was deferred (i.e.
+    queued or suppressed by the container instead of showing immediately).
+    Recorded when AdaptiveUiController#show hands the entry to the container.
+  </summary>
+  <token key="Container" variants="AdaptiveUiContainer"/>
 </histogram>
 
 <histogram name="Android.AppLaunchDrawBlocker.ActiveTabAvailable" units="ms"
@@ -2809,6 +2874,26 @@ chromium-metrics-reviews@google.com.
     Android, capturing the action taken (initiating download, completing
     restart, observing an in-progress download, falling back to an external
     update flow, or encountering a restart failure).
+  </summary>
+</histogram>
+
+<histogram name="Android.InAppUpdate.BackgroundRestart.Event"
+    enum="InAppUpdateBackgroundRestartEvent" expires_after="2027-03-10">
+  <owner>anunoy@chromium.org</owner>
+  <owner>chrome-counter-abuse-alerts@google.com</owner>
+  <summary>
+    Records lifecycle events for background installation of a downloaded in-app
+    update on Chrome for Android: initial schedule on stop, retry scheduled with
+    backoff after an active foreground-service skip (recorded separately from
+    the initial schedule), cancelled on return to foreground, skipped by a guard
+    (screen locked, incognito tabs open, activity visible at run time, active
+    foreground service, update not downloaded), completeUpdate invoked,
+    completeUpdate failed, getAppUpdateInfo failed. Query failures in
+    ActivityManager.getMyMemoryState() fail safe into the active foreground
+    service bucket. There is no success bucket because Play replaces the package
+    and kills the process before a success listener can run; for the same reason
+    CompleteUpdateCalled undercounts when the task runs in a cold Java-only
+    process, and the install outcome should be measured at the next launch.
   </summary>
 </histogram>
 
@@ -6575,6 +6660,34 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
+<histogram name="Android.TabStrip.NewTabButton.WebUI.{ExistingWindow}.{Phase}"
+    units="ms" expires_after="2027-04-05">
+  <owner>acondor@chromium.org</owner>
+  <owner>clank-performance-team@google.com</owner>
+  <summary>
+    Duration from {Phase} during the load of the tab strip WebUI New Tab Button
+    that produces its first paint, recorded when {ExistingWindow}. If the WebUI
+    renderer exits before the first paint, this measures the reload. Recorded at
+    most once per activity, together with
+    Android.TabStrip.NewTabButton.ActivityCreationToFirstPaint.
+  </summary>
+  <token key="ExistingWindow" variants="NewTabButtonExistingWindow"/>
+  <token key="Phase" variants="NewTabButtonWebUIStartupPhase"/>
+</histogram>
+
+<histogram name="Android.TabStrip.NewTabButton.WebUI.{Phase}" units="ms"
+    expires_after="2027-04-05">
+  <owner>acondor@chromium.org</owner>
+  <owner>clank-performance-team@google.com</owner>
+  <summary>
+    Duration from {Phase} during the load of the tab strip WebUI New Tab Button
+    that produces its first paint. If the WebUI renderer exits before the first
+    paint, this measures the reload. Recorded at most once per activity,
+    together with Android.TabStrip.NewTabButton.ActivityCreationToFirstPaint.
+  </summary>
+  <token key="Phase" variants="NewTabButtonWebUIStartupPhase"/>
+</histogram>
+
 <histogram
     name="Android.TabStrip.NewTabButton.{ExistingWindow}.ActivityCreationToFirstPaint"
     units="ms" expires_after="2027-04-05">
@@ -6759,28 +6872,6 @@ chromium-metrics-reviews@google.com.
     on a Poisson distributed frequency with a mean of 5 minutes starting 1
     minute after TabContentManager native initialization. Note that this memory
     may be distributed across the GPU process and Browser process.
-  </summary>
-</histogram>
-
-<histogram
-    name="Android.ThumbnailProvider.BitmapCache.Size.{ThumbnailProvider_ClientType}"
-    units="KB" expires_after="2021-01-30">
-  <owner>shaktisahu@chromium.org</owner>
-  <owner>clank-downloads@google.com</owner>
-  <summary>
-    Measures the size of the bitmap cache used. Recorded whenever a bitmap is
-    added to the cache. {ThumbnailProvider_ClientType}
-  </summary>
-</histogram>
-
-<histogram
-    name="Android.ThumbnailProvider.CachedBitmap.Found.{ThumbnailProvider_ClientType}"
-    enum="BooleanFound" expires_after="2021-01-30">
-  <owner>shaktisahu@chromium.org</owner>
-  <owner>clank-downloads@google.com</owner>
-  <summary>
-    Records the status of a thumbnail query from the thumbnail provider
-    in-memory cache. {ThumbnailProvider_ClientType}
   </summary>
 </histogram>
 

@@ -72,6 +72,9 @@ final class TabWebContentsDelegateAndroidImpl extends TabWebContentsDelegateAndr
         mDelegate = delegate;
         mCloseContentsRunnable =
                 () -> {
+                    if (mTab.isDetachedFromActivity()) {
+                        mTab.setDidCloseWhileDetached();
+                    }
                     for (TabObserver observer : mTab.getTabObservers()) {
                         observer.onCloseContents(mTab);
                     }
@@ -585,13 +588,10 @@ final class TabWebContentsDelegateAndroidImpl extends TabWebContentsDelegateAndr
 
     @Override
     public void contentsZoomChange(boolean zoomIn) {
-        WebContents wc = mTab.getWebContents();
-        if (wc != null) {
-            if (zoomIn) {
-                ZoomController.zoomIn(wc);
-            } else {
-                ZoomController.zoomOut(wc);
-            }
+        if (zoomIn) {
+            ZoomController.zoomInPage(mTab);
+        } else {
+            ZoomController.zoomOutPage(mTab);
         }
     }
 

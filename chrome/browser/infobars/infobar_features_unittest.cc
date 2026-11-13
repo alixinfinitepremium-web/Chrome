@@ -39,6 +39,9 @@ TEST_F(InfoBarFeaturesDefaultsTest, LaunchedInfoBarsAreMigratedByDefault) {
       InfoBarDelegate::PDF_INFOBAR_DELEGATE,
       InfoBarDelegate::CHROME_FOR_TESTING_INFOBAR_DELEGATE,
       InfoBarDelegate::GOOGLE_API_KEYS_INFOBAR_DELEGATE,
+      InfoBarDelegate::KNOWN_INTERCEPTION_DISCLOSURE_INFOBAR_DELEGATE,
+      InfoBarDelegate::OBSOLETE_SYSTEM_INFOBAR_DELEGATE,
+      InfoBarDelegate::PIN_INFOBAR_DELEGATE,
   };
   for (InfoBarDelegate::InfoBarIdentifier id : kLaunched) {
     EXPECT_TRUE(IsInfoBarMigrated(id)) << "InfoBarIdentifier " << id;
@@ -59,11 +62,8 @@ TEST_F(InfoBarFeaturesDefaultsTest, UnlaunchedInfoBarsAreNotMigratedByDefault) {
       InfoBarDelegate::INCOGNITO_CONNECTABILITY_INFOBAR_DELEGATE,
       InfoBarDelegate::JS_OPTIMIZATIONS_INFOBAR_DELEGATE,
       InfoBarDelegate::KEYSTONE_PROMOTION_INFOBAR_DELEGATE_MAC,
-      InfoBarDelegate::KNOWN_INTERCEPTION_DISCLOSURE_INFOBAR_DELEGATE,
       InfoBarDelegate::ENABLE_LINK_CAPTURING_INFOBAR_DELEGATE,
-      InfoBarDelegate::OBSOLETE_SYSTEM_INFOBAR_DELEGATE,
       InfoBarDelegate::OSCRYPTASYNC_AVAILABILITY_INFOBAR_DELEGATE,
-      InfoBarDelegate::PIN_INFOBAR_DELEGATE,
       InfoBarDelegate::LOCAL_TEST_POLICIES_APPLIED_INFOBAR,
       InfoBarDelegate::THEME_INSTALLED_INFOBAR_DELEGATE,
       InfoBarDelegate::EXTENSION_DEV_TOOLS_INFOBAR_DELEGATE,

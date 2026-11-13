@@ -105,8 +105,21 @@ export const SearchboxMixin = <T extends Constructor<CrLitElement>>(
     // stale results. `activeQueryId` is reset to -1 when the last query needs
     // to be abandoned. `nextQueryId_` is monotonically increasing to avoid
     // reusing IDs.
-    activeQueryId: number = -1;
+    private activeQueryId_: number = -1;
     private nextQueryId_: number = 0;
+
+    get activeQueryId(): number {
+      return this.activeQueryId_;
+    }
+
+    set activeQueryId(queryId: number) {
+      this.activeQueryId_ = queryId;
+      // An 'Enter' pressed before the active query's results arrived waits for
+      // them. Starting a new query, or abandoning the active one should abort
+      // the pending navigate.
+      this.lastIgnoredEnterEvent_ = null;
+    }
+
     lastQueriedInput: string|null = null;
     accessor multiLineEnabled: boolean = false;
     accessor singleLineOnInlineAutocomplete: boolean = false;
@@ -475,6 +488,10 @@ export const SearchboxMixin = <T extends Constructor<CrLitElement>>(
       // post-deletion result.
       const deletedLine = this.pendingDeletionLine_;
       this.pendingDeletionLine_ = null;
+      // Likewise, an 'Enter' pressed before this query's results arrived waits
+      // for its first results only, so it can't navigate on a later update.
+      const ignoredEnterEvent = this.lastIgnoredEnterEvent_;
+      this.lastIgnoredEnterEvent_ = null;
 
       this.result = result;
       const hasMatches = this.hasMatches();
@@ -500,9 +517,8 @@ export const SearchboxMixin = <T extends Constructor<CrLitElement>>(
 
         // Navigate to the default up-to-date match if the user typed and
         // pressed 'Enter' too fast.
-        if (this.lastIgnoredEnterEvent_) {
-          this.navigateToMatch(0, this.lastIgnoredEnterEvent_);
-          this.lastIgnoredEnterEvent_ = null;
+        if (ignoredEnterEvent) {
+          this.navigateToMatch(0, ignoredEnterEvent);
         }
 
       } else {
@@ -674,7 +690,11 @@ export const SearchboxMixin = <T extends Constructor<CrLitElement>>(
       this.pageHandler().onFocusChanged(false);
     }
 
-    async onInputWrapperKeydown(e: KeyboardEvent) {
+    /**
+     * Updates the state that every key press affects. It's called by
+     * `onInputWrapperKeydown()` and its overrides.
+     */
+    updateStateForKeydown(e: KeyboardEvent) {
       // On user interaction, freeze the current results to avoid result updates
       // potentially erasing user changes like cursor position. Freezing on
       // 'enter' would break the fast-enter navigations via
@@ -690,13 +710,9 @@ export const SearchboxMixin = <T extends Constructor<CrLitElement>>(
         this.activeQueryId = -1;
       }
       this.compositionCommitQueryId_ = null;
-      const modifier =
-          isMac ? e.metaKey && !e.ctrlKey : e.ctrlKey && !e.metaKey;
-      if (modifier && e.key === 'z') {
-        e.stopPropagation();
-        return;
-      }
 
+      // Pressing another key with Ctrl consumes it, so a following Enter
+      // doesn't trigger Ctrl+Enter.
       if (this.shouldAppendDotComOnCtrlEnter()) {
         if (e.key === 'Control') {
           if (this.controlKeyState === ControlKeyState.UP) {
@@ -707,6 +723,16 @@ export const SearchboxMixin = <T extends Constructor<CrLitElement>>(
             this.controlKeyState = ControlKeyState.DOWN_AND_CONSUMED;
           }
         }
+      }
+    }
+
+    async onInputWrapperKeydown(e: KeyboardEvent) {
+      this.updateStateForKeydown(e);
+      const modifier =
+          isMac ? e.metaKey && !e.ctrlKey : e.ctrlKey && !e.metaKey;
+      if (modifier && e.key === 'z') {
+        e.stopPropagation();
+        return;
       }
 
       const KEYDOWN_HANDLED_KEYS = [
@@ -996,10 +1022,11 @@ export const SearchboxMixin = <T extends Constructor<CrLitElement>>(
       } else {
         // User typed and pressed 'Enter' too quickly. Ignore this for now
         // because the matches are stale. Navigate to the default match (if
-        // one exists) once the up-to-date matches arrive.
-        this.lastIgnoredEnterEvent_ = e;
-        // Unfreeze `activeQueryId` so pending query results are accepted.
+        // one exists) once the up-to-date matches arrive. Unfreeze
+        // `activeQueryId` so pending query results are accepted. This must come
+        // first, since setting it clears `lastIgnoredEnterEvent_`.
         this.activeQueryId = this.nextQueryId_ - 1;
+        this.lastIgnoredEnterEvent_ = e;
       }
     }
 
@@ -1419,6 +1446,7 @@ export interface SearchboxMixinInterface extends
   onAutocompleteResultChanged(result: AutocompleteResult|null): void;
   onInputFocusChanged(e: CustomEvent<{value: string}>): void;
   onInputWrapperFocusout(e: FocusEvent): void;
+  updateStateForKeydown(e: KeyboardEvent): void;
   onInputWrapperKeydown(e: KeyboardEvent): void;
   onMatchClick(): void;
   onMatchFocusin(e: CustomEvent<number>): void;

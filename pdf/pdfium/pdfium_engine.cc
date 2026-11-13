@@ -9,11 +9,13 @@
 #include <stdint.h>
 
 #include <algorithm>
+#include <functional>
 #include <limits>
 #include <memory>
 #include <set>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <utility>
 
 #include "base/auto_reset.h"
@@ -792,19 +794,6 @@ AdjustedPageTextData GetAdjustedPageTextData(PDFiumPage* page,
   return {std::move(adjusted_page_text), std::move(removed_indices)};
 }
 
-FocusObjectType GetAnnotationFocusType(FPDF_ANNOTATION_SUBTYPE annot_type) {
-  switch (annot_type) {
-    case FPDF_ANNOT_LINK:
-      return FocusObjectType::kLink;
-    case FPDF_ANNOT_HIGHLIGHT:
-      return FocusObjectType::kHighlight;
-    case FPDF_ANNOT_WIDGET:
-      return FocusObjectType::kTextField;
-    default:
-      return FocusObjectType::kNone;
-  }
-}
-
 std::u16string GetAttachmentAttribute(FPDF_ATTACHMENT attachment,
                                       FPDF_BYTESTRING field) {
   return CallPDFiumWideStringBufferApi(
@@ -979,6 +968,28 @@ void CheckBitmapProperties(const SkBitmap& sk_bitmap, FPDF_BITMAP fpdf_bitmap) {
   }
 }
 
+// Sorts `page_results` by character index and merges overlapping ranges on the
+// same page.
+std::vector<PDFiumRange> MergePageRanges(
+    std::vector<PDFiumRange> page_results) {
+  std::ranges::sort(page_results, {}, &PDFiumRange::char_index);
+
+  std::vector<PDFiumRange> merged;
+  for (PDFiumRange& range : page_results) {
+    if (merged.empty() ||
+        range.char_index() >=
+            merged.back().char_index() + merged.back().char_count()) {
+      merged.push_back(std::move(range));
+    } else {
+      const int start = merged.back().char_index();
+      const int end = std::max(start + merged.back().char_count(),
+                               range.char_index() + range.char_count());
+      merged.back().SetCharCount(end - start);
+    }
+  }
+  return merged;
+}
+
 }  // namespace
 
 void InitializeSDK(bool enable_v8,
@@ -1078,6 +1089,7 @@ PDFiumEngine::~PDFiumEngine() {
   // Clear all the containers that can prevent unloading.
   find_results_.clear();
   selection_.clear();
+  text_fragment_highlights_.clear();
 #if BUILDFLAG(ENABLE_PDF_INK2)
   ink_stroke_data_.clear();
   ink_text_data_.clear();
@@ -1665,6 +1677,66 @@ void PDFiumEngine::SearchForFragment(
                  std::move(add_result_callback));
 }
 
+bool PDFiumEngine::FindAndHighlightSearchTerms(
+    base::span<const std::string_view> search_terms) {
+  CHECK(!search_terms.empty());
+
+  HighlightChangeInvalidator invalidator(this);
+  client_->OnNewTextFragmentsSearchStarted();
+  text_fragment_highlights_.clear();
+
+  if (pages_.empty()) {
+    return false;
+  }
+
+  std::vector<std::u16string> utf16_terms;
+  utf16_terms.reserve(search_terms.size());
+  for (std::string_view term : search_terms) {
+    CHECK(!term.empty());
+    utf16_terms.push_back(base::UTF8ToUTF16(term));
+  }
+
+  // Search each available page for all terms, then sort and merge overlapping
+  // matches into `text_fragment_highlights_` so scrolling visits them in order.
+  ForEachPage([&](PDFiumPage* page) {
+    if (!page->available()) {
+      return;
+    }
+
+    std::vector<PDFiumRange> page_results;
+    AddSearchResultCallback add_result = base::BindRepeating(
+        [](std::vector<PDFiumRange>& results, PDFiumRange result) {
+          results.push_back(std::move(result));
+        },
+        std::ref(page_results));
+    for (const std::u16string& term : utf16_terms) {
+      SearchForFragment(term, /*char_to_start_searching_from=*/0, page->index(),
+                        add_result);
+    }
+
+    base::Extend(text_fragment_highlights_,
+                 MergePageRanges(std::move(page_results)));
+
+    // Unload non-visible pages to avoid holding parsed resources in memory.
+    if (!IsPageVisible(page->index())) {
+      page->Unload();
+    }
+  });
+
+  return !text_fragment_highlights_.empty();
+}
+
+void PDFiumEngine::ScrollToFirstSearchResult(uint32_t start_page_index) {
+  CHECK(!text_fragment_highlights_.empty());
+  auto it =
+      std::ranges::lower_bound(text_fragment_highlights_, start_page_index, {},
+                               &PDFiumRange::page_index);
+  const PDFiumRange& target = it != text_fragment_highlights_.end()
+                                  ? *it
+                                  : text_fragment_highlights_[0];
+  ScrollToBoundingRects(target, /*force_smooth_scroll=*/false);
+}
+
 void PDFiumEngine::SetCaretBrowsingEnabled(bool enabled) {
   CHECK(!client_->IsPrintPreview());
 
@@ -1864,41 +1936,6 @@ void PDFiumEngine::UpdateFocus(bool has_focus) {
   if (caret_) {
     caret_->SetVisible(has_focus && !IsSelecting());
   }
-}
-
-AccessibilityFocusInfo PDFiumEngine::GetFocusInfo() {
-  AccessibilityFocusInfo focus_info = {FocusObjectType::kNone, 0, 0};
-
-  switch (focus_element_type_) {
-    case FocusElementType::kNone: {
-      break;
-    }
-    case FocusElementType::kPage: {
-      int page_index = -1;
-      FPDF_ANNOTATION focused_annot = nullptr;
-      FPDF_BOOL ret = FORM_GetFocusedAnnot(form(), &page_index, &focused_annot);
-      DCHECK(ret);
-
-      if (PageIndexInBounds(page_index) && focused_annot) {
-        FocusObjectType type =
-            GetAnnotationFocusType(FPDFAnnot_GetSubtype(focused_annot));
-        int annot_index = FPDFPage_GetAnnotIndex(pages_[page_index]->GetPage(),
-                                                 focused_annot);
-        if (type != FocusObjectType::kNone && annot_index >= 0) {
-          focus_info.focused_object_type = type;
-          focus_info.focused_object_page_index = page_index;
-          focus_info.focused_annotation_index_in_page = annot_index;
-        }
-      }
-      FPDFPage_CloseAnnot(focused_annot);
-      break;
-    }
-    case FocusElementType::kDocument: {
-      focus_info.focused_object_type = FocusObjectType::kDocument;
-      break;
-    }
-  }
-  return focus_info;
 }
 
 bool PDFiumEngine::IsPDFDocTagged() const {

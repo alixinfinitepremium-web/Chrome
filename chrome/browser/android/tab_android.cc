@@ -49,7 +49,7 @@
 #include "chrome/browser/ui/android/tab_model/tab_model.h"
 #include "chrome/browser/ui/android/tab_model/tab_model_list.h"
 #include "chrome/browser/ui/browser_window/public/browser_window_interface.h"
-#include "chrome/browser/ui/browser_window/public/browser_window_interface_iterator.h"
+#include "chrome/browser/ui/browser_window/public/global_browser_collection.h"
 #include "chrome/browser/ui/navigator/browser_navigator_params.h"
 #include "chrome/browser/ui/startup/bad_flags_prompt.h"
 #include "chrome/browser/ui/tabs/alert/tab_alert_controller.h"
@@ -103,13 +103,19 @@ using content::WebContents;
 
 namespace {
 
+struct LaunchTypeAtCreationForTesting : public base::SupportsUserData::Data {
+  explicit LaunchTypeAtCreationForTesting(int value) : value(value) {}
+  int value;
+};
+
+const void* const kLaunchTypeAtCreationForTestingKey =
+    &kLaunchTypeAtCreationForTestingKey;
+
 BrowserWindowInterface* FindBrowserWindowInterface(SessionID window_id) {
-  for (BrowserWindowInterface* window : GetAllBrowserWindowInterfaces()) {
-    if (window->GetSessionID() == window_id) {
-      return window;
-    }
+  if (!window_id.is_valid()) {
+    return nullptr;
   }
-  return nullptr;
+  return GlobalBrowserCollection::GetInstance()->FindBrowserWithID(window_id);
 }
 
 }  // namespace
@@ -177,13 +183,19 @@ TabAndroid::~TabAndroid() {
 std::unique_ptr<TabAndroid> TabAndroid::CreateForTesting(
     Profile* profile,
     int tab_id,
-    std::unique_ptr<content::WebContents> web_contents) {
+    std::unique_ptr<content::WebContents> web_contents,
+    std::optional<int> launch_type_at_creation) {
   if (web_contents) {
     night_mode::WebContentsThemeClient::CreateForWebContents(
         web_contents.get());
   }
   auto tab = base::WrapUnique(new TabAndroid(profile, tab_id));
   tab->web_contents_ = std::move(web_contents);
+  if (launch_type_at_creation.has_value()) {
+    tab->SetUserData(kLaunchTypeAtCreationForTestingKey,
+                     std::make_unique<LaunchTypeAtCreationForTesting>(
+                         *launch_type_at_creation));
+  }
   if (tab->web_contents_) {
     tabs::TabLookupFromWebContents::CreateForWebContents(
         tab->web_contents_.get(), tab.get());
@@ -332,7 +344,16 @@ base::Time TabAndroid::GetLastShownTimestamp() const {
 
 int TabAndroid::GetTabLaunchTypeAtCreation() const {
   JNIEnv* env = AttachCurrentThread();
-  return Java_TabImpl_getTabLaunchTypeAtCreation(env, GetJavaObject(env));
+  ScopedJavaLocalRef<jobject> j_tab = GetJavaObject(env);
+  if (!j_tab) {
+    CHECK_IS_TEST();
+    if (const auto* data = static_cast<const LaunchTypeAtCreationForTesting*>(
+            GetUserData(kLaunchTypeAtCreationForTestingKey))) {
+      return data->value;
+    }
+    return static_cast<int>(TabModel::TabLaunchType::UNSET);
+  }
+  return Java_TabImpl_getTabLaunchTypeAtCreation(env, j_tab);
 }
 
 int TabAndroid::GetParentId() const {

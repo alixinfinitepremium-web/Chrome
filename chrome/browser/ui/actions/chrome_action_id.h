@@ -46,7 +46,6 @@
   E(kActionSelectTab6, IDC_SELECT_TAB_6) \
   E(kActionSelectTab7, IDC_SELECT_TAB_7) \
   E(kActionSelectLastTab, IDC_SELECT_LAST_TAB) \
-  E(kActionSelectLastActiveTab, IDC_SELECT_LAST_ACTIVE_TAB) \
   E(kActionDuplicateTab, IDC_DUPLICATE_TAB) \
   E(kActionRestoreTab, IDC_RESTORE_TAB) \
   E(kActionShowAsTab, IDC_SHOW_AS_TAB) \
@@ -206,6 +205,7 @@
   E(kActionShowContactInfo, IDC_SHOW_CONTACT_INFO) \
   E(kActionShowIdentityDocs, IDC_SHOW_IDENTITY_DOCS) \
   E(kActionShowTravel, IDC_SHOW_TRAVEL) \
+  E(kActionShowOffersAndLoyaltyCards, IDC_SHOW_OFFERS_AND_LOYALTY_CARDS) \
   E(kActionCaretBrowsingToggle, IDC_CARET_BROWSING_TOGGLE) \
   E(kActionChromeTips, IDC_CHROME_TIPS) \
   E(kActionChromeWhatsNew, IDC_CHROME_WHATS_NEW) \
@@ -387,7 +387,7 @@
   E(kActionShowPasswordsBubbleOrPage) \
   E(kActionManagePasswordsForPage, IDC_MANAGE_PASSWORDS_FOR_PAGE) \
   E(kActionCopyUrl, IDC_COPY_URL) \
-  E(kActionTabGroupsMenu, IDC_SAVED_TAB_GROUPS_MENU) \
+  E(kActionTabGroupsMenu) \
   E(kActionTabSearch, IDC_TAB_SEARCH) \
   E(kActionSplitTab, IDC_NEW_SPLIT_TAB) \
   E(kActionFederation) \

@@ -40,6 +40,7 @@
 #import "ios/chrome/browser/intelligence/actor/tools/model/tool_controller.h"
 #import "ios/chrome/browser/intelligence/actor/tools/model/tool_delegate.h"
 #import "ios/chrome/browser/intelligence/actor/tools/public/metrics.h"
+#import "ios/chrome/browser/intelligence/actor/tools/utils/profile_context_resolver.h"
 #import "ios/chrome/browser/intelligence/actor/util/actor_test_utils.h"
 #import "ios/chrome/browser/intelligence/features/features.h"
 #import "ios/chrome/browser/origin_gating/model/origin_gating_service_factory.h"
@@ -173,10 +174,13 @@ class ActorEngineTest : public PlatformTest {
     profile_ = TestProfileIOS::Builder().Build();
     journal_ = std::make_unique<AggregatedJournal>();
     tool_factory_ = CreateToolFactory();
+    profile_context_resolver_ =
+        std::make_unique<ProfileContextResolver>(profile_.get());
     task_ = std::make_unique<ActorTask>(
         ActorTaskId(1), "Test Task", TestSource(),
         /*allow_incognito_web_states=*/false, journal_.get(),
-        tool_factory_.get(), BrowserListFactory::GetForProfile(profile_.get()),
+        tool_factory_.get(), profile_context_resolver_.get(),
+        BrowserListFactory::GetForProfile(profile_.get()),
         /*policy_checker=*/nullptr, base::DoNothing());
     engine_ = std::make_unique<ActorEngine>(&execution_updates_delegate_,
                                             task_.get());
@@ -185,6 +189,7 @@ class ActorEngineTest : public PlatformTest {
   void TearDown() override {
     engine_.reset();
     task_.reset();
+    profile_context_resolver_.reset();
     tool_factory_.reset();
     journal_.reset();
     profile_.reset();
@@ -238,6 +243,7 @@ class ActorEngineTest : public PlatformTest {
   std::unique_ptr<TestProfileIOS> profile_;
   std::unique_ptr<AggregatedJournal> journal_;
   std::unique_ptr<ActorToolFactory> tool_factory_;
+  std::unique_ptr<ProfileContextResolver> profile_context_resolver_;
   std::unique_ptr<ActorTask> task_;
   MockActorEngineExecutionUpdatesDelegate execution_updates_delegate_;
   std::unique_ptr<ActorEngine> engine_;
@@ -1431,7 +1437,7 @@ TEST_F(ActorEngineOriginGatingTest, BlocksUrlBlockedByEnterprisePolicy) {
 
   ActorTask task(ActorTaskId(2), "Policy Task", TestSource(),
                  /*allow_incognito_web_states=*/false, journal_.get(),
-                 tool_factory_.get(),
+                 tool_factory_.get(), profile_context_resolver_.get(),
                  BrowserListFactory::GetForProfile(profile_.get()),
                  &policy_checker, base::DoNothing());
   origin_gating::OriginGatingChecker* checker =
@@ -1477,7 +1483,7 @@ TEST_F(ActorEngineOriginGatingTest,
 
   ActorTask task(ActorTaskId(2), "Policy Task", TestSource(),
                  /*allow_incognito_web_states=*/false, journal_.get(),
-                 tool_factory_.get(),
+                 tool_factory_.get(), profile_context_resolver_.get(),
                  BrowserListFactory::GetForProfile(profile_.get()),
                  &policy_checker, base::DoNothing());
   origin_gating::OriginGatingChecker* checker =
@@ -1627,6 +1633,92 @@ TEST_F(ActorEngineOriginGatingTest,
   base::test::TestFuture<std::unique_ptr<origin_gating::GatingDecisionContext>,
                          origin_gating::GatingDecision>
       future;
+  checker_->ComputeGatingDecision(
+      std::make_unique<origin_gating::GatingDecisionContext>(),
+      origin_gating::GateableEvent(origin_gating::NavigationResponseEvent{
+          .source = GURL("https://safe.com"),
+          .destination = GURL("https://granted.com/checkout")}),
+      future.GetCallback());
+
+  const origin_gating::GatingDecision& decision = future.Get<1>();
+  EXPECT_TRUE(decision.is_allowed);
+  EXPECT_EQ(decision.attribution,
+            origin_gating::DecisionSource::kCacheWithoutUserConfirmation);
+}
+
+// Tests that when the navigation confirmation callback approves an ungranted
+// cross-origin redirect, the navigation succeeds and the approved origin is
+// cached in `OriginGatingCache` so subsequent navigations to that origin do not
+// re-query the callback.
+TEST_F(ActorEngineOriginGatingTest,
+       Act_NavigationConfirmationApprovedCachesOrigin) {
+  int confirmation_call_count = 0;
+  task_->SetNavigationConfirmationCallback(base::BindLambdaForTesting(
+      [&](const url::Origin& origin,
+          NavigationConfirmationDecisionCallback callback) {
+        ++confirmation_call_count;
+        EXPECT_EQ(origin,
+                  url::Origin::Create(GURL("https://critic-approved.com")));
+        std::move(callback).Run(/*permission_granted=*/true);
+      }));
+
+  ControlledTab tab = AddControlledTab(GURL("https://safe.com"));
+  tab.navigation_manager->set_simulated_response_url(
+      GURL("https://critic-approved.com/landing"));
+
+  optimization_guide::proto::Action action;
+  action.mutable_navigate()->set_url("https://new-destination.com/welcome");
+  action.mutable_navigate()->set_tab_id(tab.tab_id);
+
+  std::vector<std::unique_ptr<ActorToolRequest>> actions;
+  actions.push_back(std::make_unique<ActorToolRequest>(action));
+  base::test::TestFuture<std::vector<ActionResult>> future;
+  task_->Act(std::move(actions), "Navigating", future.GetCallback());
+  const std::vector<ActionResult>& results = future.Get();
+
+  ASSERT_EQ(1u, results.size());
+  EXPECT_TRUE(results[0].tool_result.IsOk());
+  EXPECT_EQ(1, confirmation_call_count);
+
+  origin_gating::OriginGatingChecker* task_checker =
+      task_->engine().GetOriginGatingChecker();
+  ASSERT_NE(task_checker, nullptr);
+
+  // A subsequent navigation response to the same origin should be resolved by
+  // `kCacheWithoutUserConfirmation` without invoking the callback again.
+  base::test::TestFuture<std::unique_ptr<origin_gating::GatingDecisionContext>,
+                         origin_gating::GatingDecision>
+      cached_future;
+  task_checker->ComputeGatingDecision(
+      std::make_unique<origin_gating::GatingDecisionContext>(),
+      origin_gating::GateableEvent(origin_gating::NavigationResponseEvent{
+          .source = GURL("https://safe.com"),
+          .destination = GURL("https://critic-approved.com/checkout")}),
+      cached_future.GetCallback());
+
+  const origin_gating::GatingDecision& cached_decision = cached_future.Get<1>();
+  EXPECT_TRUE(cached_decision.is_allowed);
+  EXPECT_EQ(cached_decision.attribution,
+            origin_gating::DecisionSource::kCacheWithoutUserConfirmation);
+  EXPECT_EQ(1, confirmation_call_count);
+}
+
+// Tests that origins pre-approved via `AddWritableMainframeOrigins` resolve via
+// `kCacheWithoutUserConfirmation` without invoking the navigation confirmation
+// callback.
+TEST_F(ActorEngineOriginGatingTest,
+       AddWritableMainframeOrigins_SkipsNavigationConfirmationCallback) {
+  task_->SetNavigationConfirmationCallback(base::BindLambdaForTesting(
+      [](const url::Origin& origin,
+         NavigationConfirmationDecisionCallback callback) { FAIL(); }));
+
+  engine_->AddWritableMainframeOrigins(
+      {url::Origin::Create(GURL("https://granted.com"))});
+
+  base::test::TestFuture<std::unique_ptr<origin_gating::GatingDecisionContext>,
+                         origin_gating::GatingDecision>
+      future;
+
   checker_->ComputeGatingDecision(
       std::make_unique<origin_gating::GatingDecisionContext>(),
       origin_gating::GateableEvent(origin_gating::NavigationResponseEvent{

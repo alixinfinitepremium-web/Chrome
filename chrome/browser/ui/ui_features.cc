@@ -56,9 +56,11 @@ BASE_FEATURE(kFastFaviconDisplay, base::FEATURE_ENABLED_BY_DEFAULT);
 
 // Enables showing the identity provider's account management page, privacy
 // policy and terms of service links in the FedCM modal permission dialog on
-// desktop. The links are shown in the disclosure container, so this also
-// enables the container UI, as if `kFedCmPermissionUiWithContainer` were
-// enabled.
+// desktop. In passive mode, an account that needs permission then requests it
+// through the modal dialog instead of the bubble. With multiple identity
+// providers, this also requires `kFedCmActiveModeMultipleIdentityProviders`.
+// The links are shown in the disclosure container, so this also enables the
+// container UI, as if `kFedCmPermissionUiWithContainer` were enabled.
 BASE_FEATURE(kFedCmIdpLinks, base::FEATURE_DISABLED_BY_DEFAULT);
 
 // Enables the request permission UI with a container for the disclosure text
@@ -128,6 +130,10 @@ BASE_FEATURE_PARAM(bool,
                    "bookmark",
                    true);
 BASE_FEATURE(kMenuSimplification, base::FEATURE_DISABLED_BY_DEFAULT);
+BASE_FEATURE_PARAM(bool,
+                   kMenuSimplificationGlicSearchAboveSaveAndPrint,
+                   &kMenuSimplification,
+                   false);
 BASE_FEATURE(kTabGroupColorRefresh, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kWebuiRefresh2026, base::FEATURE_DISABLED_BY_DEFAULT);
 BASE_FEATURE(kAppMenuGlowUp, base::FEATURE_DISABLED_BY_DEFAULT);
@@ -416,6 +422,9 @@ BASE_FEATURE(kPageActionAnchoredMessageActiveTabOnly,
              base::FEATURE_DISABLED_BY_DEFAULT);
 
 BASE_FEATURE(kAiModePageActionOptimization, base::FEATURE_DISABLED_BY_DEFAULT);
+
+BASE_FEATURE(kPageActionsFocusChangeOptimizations,
+             base::FEATURE_DISABLED_BY_DEFAULT);
 
 BASE_FEATURE(kPageActionsPrioritySelector, base::FEATURE_ENABLED_BY_DEFAULT);
 BASE_FEATURE(kPageActionsPrioritySelectorProductMessagingController,

@@ -545,6 +545,11 @@ IN_PROC_BROWSER_TEST_F(SettingsTest, GlicSubpageHotkeyLocalScopeDisabled) {
           "runMochaSuite('GlicSubpage HotkeyLocalScopeDisabled')");
 }
 
+IN_PROC_BROWSER_TEST_F(SettingsTest, GlicSubpageDevicePolicyToggle) {
+  RunTest("settings/glic_subpage_test.js",
+          "runMochaSuite('GlicSubpage DevicePolicyToggle')");
+}
+
 IN_PROC_BROWSER_TEST_F(SettingsTest, GlicLoginPermissionsPage) {
   RunTest("settings/glic_login_permissions_page_test.js", "mocha.run()");
 }
@@ -2047,6 +2052,10 @@ IN_PROC_BROWSER_TEST_F(YourSavedInfoTest, MAYBE_AutofillPageIndex) {
 
 IN_PROC_BROWSER_TEST_F(YourSavedInfoTest, IdentityDocsPageTest) {
   RunTest("settings/identity_docs_page_test.js", "mocha.run()");
+}
+
+IN_PROC_BROWSER_TEST_F(YourSavedInfoTest, OffersAndLoyaltyCardsPage) {
+  RunTest("settings/offers_and_loyalty_cards_page_test.js", "mocha.run()");
 }
 
 IN_PROC_BROWSER_TEST_F(YourSavedInfoTest, ShoppingPageTest) {

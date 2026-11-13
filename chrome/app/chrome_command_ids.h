@@ -52,7 +52,6 @@
 #define IDC_SELECT_TAB_6                34024
 #define IDC_SELECT_TAB_7                34025
 #define IDC_SELECT_LAST_TAB             34026
-#define IDC_SELECT_LAST_ACTIVE_TAB      34068
 #define IDC_DUPLICATE_TAB               34027
 #define IDC_RESTORE_TAB                 34028
 #define IDC_SHOW_AS_TAB                 34029
@@ -154,6 +153,7 @@
 #define IDC_AUTOFILL_MANDATORY_REAUTH   35036
 #define IDC_SHOW_PASSWORD_MANAGER       35041
 #define IDC_SHOW_PAYMENT_METHODS        35042
+#define IDC_SHOW_OFFERS_AND_LOYALTY_CARDS 35043
 #define IDC_ORGANIZE_TABS               35044
 #define IDC_SEND_SHARED_TAB_GROUP_FEEDBACK 35046
 #define IDC_SHOW_IDENTITY_DOCS          35047

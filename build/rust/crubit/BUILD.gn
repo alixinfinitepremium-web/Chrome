@@ -17,6 +17,22 @@ group("crubit") {
   ]
 }
 
+# C++ annotations from `third_party/crubit/support/annotations.h` (e.g.
+# `CRUBIT_UNSAFE_BITWISE_RELOCATABLE`).  Unlike `:crubit` above, this target is
+# header-only and doesn't depend on Rust, so foundational C++ libraries
+# (e.g. `//base` or `//url`) can use it.
+group("annotations") {
+  # `all_dependent_configs` (rather than `public_configs`) are needed, because
+  # headers that use the annotations (e.g. `//url/gurl.h`) may be included
+  # (indirectly) by targets that don't have a chain of `public_deps` to this
+  # target.
+  all_dependent_configs = [
+    ":public_config",
+    "$crubit_src_dir:config",
+  ]
+  public_deps = [ "$crubit_src_dir/support:annotations" ]
+}
+
 config("public_config") {
   visibility = [ ":*" ]
 
@@ -165,11 +181,12 @@ if (enable_rust_api_from_cpp) {
     # Some standard library types (e.g. `std::unique_ptr`) are defined in
     # internal libc++ headers.
     #
-    # TODO(crbug.com/40226863): Cover all libc++ headers (e.g. `libcxx_headers`
+    # TODO(crbug.com/582820843): Cover all libc++ headers (e.g. `libcxx_headers`
     # from `//buildtools/third_party/libc++/libcxx_headers.gni`).  This requires
     # first covering all the public headers from Crubit's `headers.bzl`
     # (otherwise the generated C++ code may refer to types like
-    # `std::input_iterator_tag` without including their public header).
+    # `std::input_iterator_tag` without including their public header).  This
+    # also requires solving the IWYU problem described in crbug.com/582820843
     internal_headers = [
       "${libcxx_prefix}/include/__compare/ordering.h",
       "${libcxx_prefix}/include/__fwd/string_view.h",

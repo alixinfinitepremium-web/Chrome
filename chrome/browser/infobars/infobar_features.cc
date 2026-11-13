@@ -90,7 +90,7 @@ BASE_FEATURE_PARAM(bool,
 BASE_FEATURE_PARAM(bool,
                    kMigratedKnownInterceptionDisclosure,
                    &kCentralizedInfoBarFramework,
-                   false);
+                   true);
 
 BASE_FEATURE_PARAM(bool,
                    kMigratedLinkCapturing,
@@ -106,7 +106,7 @@ BASE_FEATURE_PARAM(bool, kMigratedPdf, &kCentralizedInfoBarFramework, true);
 BASE_FEATURE_PARAM(bool,
                    kMigratedObsoleteSystem,
                    &kCentralizedInfoBarFramework,
-                   false);
+                   true);
 
 BASE_FEATURE_PARAM(bool,
                    kMigratedOSCryptAsyncAvailability,
@@ -121,7 +121,7 @@ BASE_FEATURE_PARAM(bool,
 BASE_FEATURE_PARAM(bool,
                    kMigratedPinInfoBar,
                    &kCentralizedInfoBarFramework,
-                   false);
+                   true);
 
 BASE_FEATURE_PARAM(bool,
                    kMigratedLocalTestPolicies,

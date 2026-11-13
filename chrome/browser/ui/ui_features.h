@@ -69,6 +69,8 @@ BASE_DECLARE_FEATURE_PARAM(bool, kToolbarGlowUpReloadEnabled);
 BASE_DECLARE_FEATURE_PARAM(bool, kToolbarGlowUpBackForwardEnabled);
 BASE_DECLARE_FEATURE_PARAM(bool, kToolbarGlowUpBookmarkEnabled);
 BASE_DECLARE_FEATURE(kMenuSimplification);
+BASE_DECLARE_FEATURE_PARAM(bool,
+                           kMenuSimplificationGlicSearchAboveSaveAndPrint);
 BASE_DECLARE_FEATURE(kTabGroupColorRefresh);
 BASE_DECLARE_FEATURE(kWebuiRefresh2026);
 BASE_DECLARE_FEATURE(kAppMenuGlowUp);
@@ -332,6 +334,10 @@ BASE_DECLARE_FEATURE(kPageActionAnchoredMessageActiveTabOnly);
 // Gates the optimization for AI Mode page action to reduce mouse pressed
 // latency.
 BASE_DECLARE_FEATURE(kAiModePageActionOptimization);
+
+// Gates skipping unchanged-visibility omnibox suppression notifications on
+// location bar focus changes, to reduce mouse pressed latency.
+BASE_DECLARE_FEATURE(kPageActionsFocusChangeOptimizations);
 
 // The following feature params indicate whether individual features should
 // have their page actions controlled using the new framework.

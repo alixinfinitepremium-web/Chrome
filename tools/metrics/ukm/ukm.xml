@@ -7441,13 +7441,6 @@ be describing additional metrics about the same event.
       Records an enum representing the specific Client Hint type that was
       requested.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
 </event>
 
@@ -7462,13 +7455,6 @@ be describing additional metrics about the same event.
       Records an enum representing the specific Client Hint type that was
       requested.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
 </event>
 
@@ -11901,13 +11887,6 @@ be describing additional metrics about the same event.
       Records duration in milliseconds from when the heuristic JavaScript is
       executed to when all required feature values for the model are collected.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <quantiles type="std-percentiles"/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
 </event>
 
@@ -11948,13 +11927,6 @@ be describing additional metrics about the same event.
       The access point that triggered the Reading Mode UI that is shown for the
       current page.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
 </event>
 
@@ -13343,13 +13315,6 @@ be describing additional metrics about the same event.
     <summary>
       Whether hardware secure codecs are required for the current CDM.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
 </event>
 
@@ -13585,25 +13550,11 @@ be describing additional metrics about the same event.
     <summary>
       Whether the frame is Cross-Origin to the main frame.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="IsTopFrame" enum="Boolean">
     <summary>
       Whether the frame is the main frame.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="KeySystem" enum="MediaKeySystemLegacy">
     <summary>
@@ -13686,25 +13637,11 @@ be describing additional metrics about the same event.
     <summary>
       Whether the frame is an ad frame.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="IsCrossOrigin" enum="Boolean">
     <summary>
       Whether the frame is Cross-Origin to the main frame.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="IsFromMediaCapabilities" enum="Boolean">
     <summary>
@@ -13715,13 +13652,6 @@ be describing additional metrics about the same event.
     <summary>
       Whether the frame is the main frame.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="KeySystem" enum="MediaKeySystemLegacy">
     <summary>
@@ -13750,13 +13680,6 @@ be describing additional metrics about the same event.
       Whether there are any &quot;videoCapabilities&quot; with robustness being
       &quot;HW_SECURE_ALL&quot;.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
 </event>
 
@@ -14284,13 +14207,6 @@ be describing additional metrics about the same event.
       dynamically during one playback, and is only determined after any HLS
       fallback might happen.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="FinalPipelineStatus" enum="PipelineStatus">
     <summary>
@@ -14304,13 +14220,6 @@ be describing additional metrics about the same event.
       for the CDM to be set or waiting for decryption key. For an non-EME
       playback, this is always reported as false.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="IsEME">
     <summary>
@@ -14356,13 +14265,6 @@ be describing additional metrics about the same event.
       Type of media::Renderer used for the playback. In most cases we do not
       support dynamically changing RendererType during one playback.
     </summary>
-    <aggregation>
-      <history>
-        <statistics>
-          <enumeration/>
-        </statistics>
-      </history>
-    </aggregation>
   </metric>
   <metric name="TimeToFirstFrame">
     <summary>

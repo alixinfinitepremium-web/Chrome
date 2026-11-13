@@ -142,13 +142,41 @@ void AndroidAutofillProvider::RenderFrameDeleted(
   if (session_state_ && session_state_->manager &&
       session_state_->last_queried_field_rfh_id == rfh->GetGlobalId()) {
     OnHidePopup(session_state_->manager.get());
-    session_state_->last_queried_field_rfh_id = {};
   }
   if (credman_sheet_rfh_id_ == rfh->GetGlobalId()) {
     // `WebAuthnCredManDelegateFactory` takes care of cleaning up
     // `GetCredManDelegate(rfh)`.
     credman_sheet_status_ = CredManBottomSheetLifecycle::kNotShown;
     credman_sheet_rfh_id_ = {};
+  }
+}
+
+void AndroidAutofillProvider::RenderFrameHostStateChanged(
+    content::RenderFrameHost* rfh,
+    content::RenderFrameHost::LifecycleState old_state,
+    content::RenderFrameHost::LifecycleState new_state) {
+  auto should_hide_popup = [](content::RenderFrameHost::LifecycleState state) {
+    switch (state) {
+      case content::RenderFrameHost::LifecycleState::kActive:
+        return false;
+      case content::RenderFrameHost::LifecycleState::kPendingCommit:
+      case content::RenderFrameHost::LifecycleState::kPrerendering:
+      case content::RenderFrameHost::LifecycleState::kInBackForwardCache:
+      case content::RenderFrameHost::LifecycleState::kPendingDeletion:
+        return true;
+    }
+    NOTREACHED();
+  };
+
+  if (should_hide_popup(new_state)) {
+    if (session_state_ && session_state_->manager &&
+        session_state_->last_queried_field_rfh_id == rfh->GetGlobalId()) {
+      OnHidePopup(session_state_->manager.get());
+    }
+    if (credman_sheet_rfh_id_ == rfh->GetGlobalId()) {
+      ClearCredManCompletionCallback();
+      credman_sheet_status_ = CredManBottomSheetLifecycle::kNotShown;
+    }
   }
 }
 
@@ -163,7 +191,6 @@ void AndroidAutofillProvider::DidFinishNavigation(
       session_state_->last_queried_field_rfh_id ==
           navigation_handle->GetPreviousRenderFrameHostId()) {
     OnHidePopup(session_state_->manager.get());
-    session_state_->last_queried_field_rfh_id = {};
   }
 
   if (credman_sheet_rfh_id_ ==
@@ -685,6 +712,7 @@ void AndroidAutofillProvider::OnHidePopup(AndroidAutofillManager* manager) {
   DCHECK_CURRENTLY_ON(BrowserThread::UI);
   if (session_state_ && manager == session_state_->manager.get()) {
     bridge_->HideDatalistPopup();
+    session_state_->last_queried_field_rfh_id = {};
   }
 }
 

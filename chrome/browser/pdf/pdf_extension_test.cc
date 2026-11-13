@@ -171,6 +171,9 @@ const int kDefaultKeyModifier = blink::WebInputEvent::kControlKey;
 constexpr char kNestedWindowFramesUndefinedCheck[] =
     "window.frames[0][0] === undefined";
 
+constexpr char kGetMostVisiblePageScript[] =
+    "window.viewer.viewport.getMostVisiblePage()";
+
 struct PDFExtensionLoadTestPassToString {
   std::string operator()(const ::testing::TestParamInfo<int>& i) const {
     return base::NumberToString(i.param);
@@ -4572,10 +4575,10 @@ IN_PROC_BROWSER_TEST_F(PDFExtensionTest,
   ASSERT_TRUE(target_extension_host);
   ASSERT_EQ(2, browser()->GetTabStripModel()->count());
 
-  static constexpr char kGetPageScript[] =
-      "window.viewer.viewport.getMostVisiblePage()";
-  ASSERT_EQ(0, content::EvalJs(target_extension_host, kGetPageScript));
-  ASSERT_EQ(0, content::EvalJs(other_extension_host, kGetPageScript));
+  ASSERT_EQ(
+      0, content::EvalJs(target_extension_host, kGetMostVisiblePageScript));
+  ASSERT_EQ(0,
+            content::EvalJs(other_extension_host, kGetMostVisiblePageScript));
 
   // Ask the viewer in the active (target) tab to go to the third page.
   pdf_extension_util::DispatchShouldUpdateViewportEvent(
@@ -4583,10 +4586,23 @@ IN_PROC_BROWSER_TEST_F(PDFExtensionTest,
       GURL(url.spec() + "#page=3"));
 
   ASSERT_TRUE(base::test::RunUntil([&]() {
-    return content::EvalJs(target_extension_host, kGetPageScript)
+    return content::EvalJs(target_extension_host, kGetMostVisiblePageScript)
                .ExtractInt() == 2;
   }));
-  EXPECT_EQ(0, content::EvalJs(other_extension_host, kGetPageScript));
+  EXPECT_EQ(0,
+            content::EvalJs(other_extension_host, kGetMostVisiblePageScript));
+}
+
+IN_PROC_BROWSER_TEST_F(PDFExtensionTest, SearchOpenParam) {
+  const GURL url = embedded_test_server()->GetURL("/pdf/test-bookmarks.pdf");
+  // Opening with #search="Subsection" scrolls to page index 1.
+  content::RenderFrameHost* extension_host =
+      LoadPdfGetExtensionHost(GURL(url.spec() + "#search=\"Subsection\""));
+  ASSERT_TRUE(extension_host);
+  EXPECT_TRUE(base::test::RunUntil([&]() {
+    return content::EvalJs(extension_host, kGetMostVisiblePageScript)
+               .ExtractInt() == 1;
+  }));
 }
 
 // Test class that enables the RendererSideContentDecoding feature.
@@ -4613,13 +4629,11 @@ IN_PROC_BROWSER_TEST_F(PDFExtensionTestWithRendererSideContentDecoding,
   EXPECT_TRUE(LoadPdf(embedded_test_server()->GetURL("/pdf/test.pdf.gz")));
 }
 
-// Test class that is parameterized over OOPIF and PDF XFA support features.
-class PDFExtensionXfaTest
-    : public PDFExtensionTestBase,
-      public testing::WithParamInterface<PDFExtensionTestState> {
+// Test class that is parameterized over PDF XFA support feature.
+class PDFExtensionXfaTest : public PDFExtensionTestBase,
+                            public testing::WithParamInterface<bool> {
  public:
-  bool UseOopif() const override { return PDFTestStateUseOopif(GetParam()); }
-  bool EnableXfa() const { return PDFTestStateEnableXfa(GetParam()); }
+  bool EnableXfa() const { return GetParam(); }
 
  protected:
   std::vector<base::test::FeatureRefAndParams> GetEnabledFeatures()
@@ -4647,20 +4661,9 @@ IN_PROC_BROWSER_TEST_P(PDFExtensionXfaTest, LoadXfaDocument) {
       embedded_test_server()->GetURL("/pdf/accessibility/xfa_fields.pdf")));
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    All,
-    PDFExtensionXfaTest,
-    testing::Values(PDFExtensionTestState::kGuestViewNoXfa,
-                    PDFExtensionTestState::kOopifPdfNoXfa,
-                    PDFExtensionTestState::kOopifPdfXfa),
-    [](const testing::TestParamInfo<PDFExtensionTestState>& info) {
-      switch (info.param) {
-        case PDFExtensionTestState::kGuestViewNoXfa:
-          return "GUESTVIEW_NoXFA";
-        case PDFExtensionTestState::kOopifPdfNoXfa:
-          return "OOPIF_NoXFA";
-        case PDFExtensionTestState::kOopifPdfXfa:
-          return "OOPIF_XFA";
-      }
-      NOTREACHED();
-    });
+INSTANTIATE_TEST_SUITE_P(All,
+                         PDFExtensionXfaTest,
+                         testing::Bool(),
+                         [](const testing::TestParamInfo<bool>& info) {
+                           return info.param ? "XFA" : "NoXFA";
+                         });

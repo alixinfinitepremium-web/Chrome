@@ -129,12 +129,15 @@ public class AdaptiveUiDialogCoordinatorTest {
         Set<PropertyKey> expected =
                 Set.of(
                         AdaptiveUiProperties.DIALOG_CONTENT_DESCRIPTION,
+                        AdaptiveUiProperties.SHEET_OPENED_ACCESSIBILITY_STRING_ID,
+                        AdaptiveUiProperties.SHEET_CLOSED_ACCESSIBILITY_STRING_ID,
                         AdaptiveUiProperties.CUSTOM_VIEW,
                         AdaptiveUiProperties.BACK_PRESS_HANDLER,
                         AdaptiveUiProperties.ON_PRIMARY_BUTTON_CLICKED,
                         AdaptiveUiProperties.ON_SECONDARY_BUTTON_CLICKED,
                         AdaptiveUiProperties.PRIMARY_BUTTON_KEEPS_OPEN,
-                        AdaptiveUiProperties.SECONDARY_BUTTON_KEEPS_OPEN);
+                        AdaptiveUiProperties.SECONDARY_BUTTON_KEEPS_OPEN,
+                        AdaptiveUiProperties.FILTER_TOUCH_FOR_SECURITY);
         assertEquals(expected, AdaptiveUiDialogViewBinder.COORDINATOR_HANDLED_KEYS);
         assertTrue(
                 "Primary/secondary button text must be bound live by the binder",
@@ -146,6 +149,10 @@ public class AdaptiveUiDialogCoordinatorTest {
                 "DESCRIPTION must be bound live by the binder",
                 !AdaptiveUiDialogViewBinder.COORDINATOR_HANDLED_KEYS.contains(
                         AdaptiveUiProperties.DESCRIPTION));
+        assertFalse(
+                "BUTTON_TAP_PROTECTION_PERIOD_MS must be bound live by the binder",
+                AdaptiveUiDialogViewBinder.COORDINATOR_HANDLED_KEYS.contains(
+                        AdaptiveUiProperties.BUTTON_TAP_PROTECTION_PERIOD_MS));
     }
 
     @Test
@@ -205,6 +212,29 @@ public class AdaptiveUiDialogCoordinatorTest {
     }
 
     @Test
+    public void testSheetAccessibilityKeysAreIgnoredByDialog() {
+        PropertyModel model =
+                newModelBuilder()
+                        .with(
+                                AdaptiveUiProperties.SHEET_OPENED_ACCESSIBILITY_STRING_ID,
+                                R.string.ok)
+                        .with(
+                                AdaptiveUiProperties.SHEET_CLOSED_ACCESSIBILITY_STRING_ID,
+                                R.string.cancel)
+                        .build();
+        PropertyModel dialogModel = createCoordinator(model).getDialogModel();
+
+        assertFalse(
+                dialogModel
+                        .getAllSetProperties()
+                        .contains(ModalDialogProperties.CONTENT_DESCRIPTION));
+        assertNull(dialogModel.get(ModalDialogProperties.CONTENT_DESCRIPTION));
+        ModalDialogView dialogView = bindToRealModalDialogView(dialogModel);
+        assertNotNull(dialogView);
+        assertNull(dialogView.getContentDescription());
+    }
+
+    @Test
     public void testUnsetButtonsAreAbsentFromDialogModel() {
         PropertyModel model = newModelBuilder().build();
         PropertyModel dialogModel = createCoordinator(model).getDialogModel();
@@ -239,6 +269,98 @@ public class AdaptiveUiDialogCoordinatorTest {
         assertTrue(dialogModel.get(ModalDialogProperties.NEGATIVE_BUTTON_DISABLED));
         model.set(AdaptiveUiProperties.SECONDARY_BUTTON_DISABLED, false);
         assertFalse(dialogModel.get(ModalDialogProperties.NEGATIVE_BUTTON_DISABLED));
+    }
+
+    @Test
+    public void testButtonTapAndTouchProtection_UnsetDefaults() {
+        PropertyModel emptyDialogModel =
+                createCoordinator(newModelBuilder().build()).getDialogModel();
+        assertFalse(emptyDialogModel.get(ModalDialogProperties.FILTER_TOUCH_FOR_SECURITY));
+        assertEquals(
+                0L, emptyDialogModel.get(ModalDialogProperties.BUTTON_TAP_PROTECTION_PERIOD_MS));
+
+        PropertyModel model =
+                newModelBuilder().with(AdaptiveUiProperties.PRIMARY_BUTTON_TEXT, "Primary").build();
+        PropertyModel dialogModel = createCoordinator(model).getDialogModel();
+        assertFalse(dialogModel.get(ModalDialogProperties.FILTER_TOUCH_FOR_SECURITY));
+        assertEquals(0L, dialogModel.get(ModalDialogProperties.BUTTON_TAP_PROTECTION_PERIOD_MS));
+
+        ModalDialogView dialogView = bindToRealModalDialogView(dialogModel);
+        View positiveButton =
+                dialogView.findViewWithTag(
+                        ModalDialogView.getTagForButtonType(ButtonType.POSITIVE));
+        assertNotNull(positiveButton);
+        assertFalse(positiveButton.getFilterTouchesWhenObscured());
+    }
+
+    @Test
+    public void testButtonTapAndTouchProtection_WithActionButton_MapsUpdatesLiveAndBinds() {
+        PropertyModel model =
+                newModelBuilder()
+                        .with(AdaptiveUiProperties.PRIMARY_BUTTON_TEXT, "Primary")
+                        .with(AdaptiveUiProperties.FILTER_TOUCH_FOR_SECURITY, true)
+                        .with(AdaptiveUiProperties.BUTTON_TAP_PROTECTION_PERIOD_MS, 500L)
+                        .build();
+        PropertyModel dialogModel = createCoordinator(model).getDialogModel();
+
+        assertTrue(dialogModel.get(ModalDialogProperties.FILTER_TOUCH_FOR_SECURITY));
+        assertEquals(500L, dialogModel.get(ModalDialogProperties.BUTTON_TAP_PROTECTION_PERIOD_MS));
+
+        ModalDialogView dialogView = bindToRealModalDialogView(dialogModel);
+        View positiveButton =
+                dialogView.findViewWithTag(
+                        ModalDialogView.getTagForButtonType(ButtonType.POSITIVE));
+        assertNotNull(positiveButton);
+        assertTrue(positiveButton.getFilterTouchesWhenObscured());
+
+        model.set(AdaptiveUiProperties.BUTTON_TAP_PROTECTION_PERIOD_MS, 750L);
+        assertEquals(750L, dialogModel.get(ModalDialogProperties.BUTTON_TAP_PROTECTION_PERIOD_MS));
+
+        PropertyModel secondaryOnlyModel =
+                newModelBuilder()
+                        .with(AdaptiveUiProperties.SECONDARY_BUTTON_TEXT, "Secondary")
+                        .with(AdaptiveUiProperties.FILTER_TOUCH_FOR_SECURITY, true)
+                        .build();
+        PropertyModel secondaryDialogModel = createCoordinator(secondaryOnlyModel).getDialogModel();
+        assertTrue(secondaryDialogModel.get(ModalDialogProperties.FILTER_TOUCH_FOR_SECURITY));
+        ModalDialogView secondaryDialogView = bindToRealModalDialogView(secondaryDialogModel);
+        View negativeButton =
+                secondaryDialogView.findViewWithTag(
+                        ModalDialogView.getTagForButtonType(ButtonType.NEGATIVE));
+        assertNotNull(negativeButton);
+        assertTrue(negativeButton.getFilterTouchesWhenObscured());
+    }
+
+    @Test
+    public void testFilterTouchForSecurity_WithoutActionButtons_NotForwardedAndBinds() {
+        PropertyModel model =
+                newModelBuilder()
+                        .with(AdaptiveUiProperties.TITLE, "Title")
+                        .with(AdaptiveUiProperties.SHOW_CLOSE_BUTTON, true)
+                        .with(AdaptiveUiProperties.FILTER_TOUCH_FOR_SECURITY, true)
+                        .build();
+        PropertyModel dialogModel = createCoordinator(model).getDialogModel();
+
+        assertFalse(dialogModel.get(ModalDialogProperties.FILTER_TOUCH_FOR_SECURITY));
+        ModalDialogView dialogView = bindToRealModalDialogView(dialogModel);
+        assertNotNull(dialogView);
+        View positiveButton =
+                dialogView.findViewWithTag(
+                        ModalDialogView.getTagForButtonType(ButtonType.POSITIVE));
+        assertNotNull(positiveButton);
+        assertFalse(positiveButton.getFilterTouchesWhenObscured());
+
+        PropertyModel emptyButtonTextModel =
+                newModelBuilder()
+                        .with(AdaptiveUiProperties.PRIMARY_BUTTON_TEXT, "")
+                        .with(AdaptiveUiProperties.SECONDARY_BUTTON_TEXT, "")
+                        .with(AdaptiveUiProperties.FILTER_TOUCH_FOR_SECURITY, true)
+                        .build();
+        PropertyModel emptyButtonTextDialogModel =
+                createCoordinator(emptyButtonTextModel).getDialogModel();
+        assertFalse(
+                emptyButtonTextDialogModel.get(ModalDialogProperties.FILTER_TOUCH_FOR_SECURITY));
+        assertNotNull(bindToRealModalDialogView(emptyButtonTextDialogModel));
     }
 
     // ---------------------------------------------------------------------------------------

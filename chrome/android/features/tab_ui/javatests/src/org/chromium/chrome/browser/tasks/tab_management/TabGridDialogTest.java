@@ -112,6 +112,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import org.chromium.base.Callback;
+import org.chromium.base.DeviceInfo;
 import org.chromium.base.ThreadUtils;
 import org.chromium.base.Token;
 import org.chromium.base.test.params.ParameterAnnotations;
@@ -123,8 +124,6 @@ import org.chromium.base.test.util.CallbackHelper;
 import org.chromium.base.test.util.CommandLineFlags;
 import org.chromium.base.test.util.Criteria;
 import org.chromium.base.test.util.CriteriaHelper;
-import org.chromium.base.test.util.DisableIf;
-import org.chromium.base.test.util.DisabledTest;
 import org.chromium.base.test.util.Feature;
 import org.chromium.base.test.util.Features.DisableFeatures;
 import org.chromium.base.test.util.Features.EnableFeatures;
@@ -1188,7 +1187,6 @@ public class TabGridDialogTest {
 
     @Test
     @LargeTest
-    @DisableIf.Device(DeviceFormFactor.DESKTOP) // crbug.com/394671175
     public void testTabGroupNaming() throws ExecutionException {
         final ChromeTabbedActivity cta = mActivityTestRule.getActivity();
         createTabs(cta, false, 2);
@@ -1263,7 +1261,6 @@ public class TabGridDialogTest {
     // Regression test for https://crbug.com/40895368
     @Test
     @MediumTest
-    @DisableIf.Device(DeviceFormFactor.DESKTOP) // crbug.com/394671175
     public void testTabGroupNaming_afterFocusNoTitleSaved() throws ExecutionException {
         final ChromeTabbedActivity cta = mActivityTestRule.getActivity();
         createTabs(cta, false, 3);
@@ -1282,9 +1279,12 @@ public class TabGridDialogTest {
         // Click on the title this should not save the title.
         clickTitleTextToFocus(cta);
         verifyTitleTextFocus(cta, true);
-        Espresso.pressBack();
-        verifyTitleTextFocus(cta, false);
-        verifyShowingDialog(cta, 3, null);
+        // On desktop, back closes the dialog instead of hiding a soft keyboard.
+        if (!DeviceInfo.isDesktop()) {
+            Espresso.pressBack();
+            verifyTitleTextFocus(cta, false);
+            verifyShowingDialog(cta, 3, null);
+        }
 
         // Close a tab and exit dialog.
         closeFirstTabInDialog();
@@ -1299,12 +1299,14 @@ public class TabGridDialogTest {
         verifyFirstCardTitle(twoTabsString);
         openDialogFromTabSwitcherAndVerify(cta, 2, twoTabsString);
 
-        // Click on the title.
-        clickTitleTextToFocus(cta);
-        verifyTitleTextFocus(cta, true);
-        Espresso.pressBack();
-        verifyTitleTextFocus(cta, false);
-        verifyShowingDialog(cta, 2, null);
+        // Click on the title. On desktop, back closes the dialog.
+        if (!DeviceInfo.isDesktop()) {
+            clickTitleTextToFocus(cta);
+            verifyTitleTextFocus(cta, true);
+            Espresso.pressBack();
+            verifyTitleTextFocus(cta, false);
+            verifyShowingDialog(cta, 2, null);
+        }
 
         // Confirm actually changing the title works.
         editDialogTitle(cta, CUSTOMIZED_TITLE1);
@@ -1533,7 +1535,6 @@ public class TabGridDialogTest {
 
     @Test
     @MediumTest
-    @DisabledTest(message = "crbug.com/585356219")
     public void testAccessibilityString() throws ExecutionException {
         final ChromeTabbedActivity cta = mActivityTestRule.getActivity();
         createTabs(cta, false, 3);
@@ -2265,7 +2266,11 @@ public class TabGridDialogTest {
                                     titleView.getText().length(),
                                     titleView.getSelectionEnd() - titleView.getSelectionStart());
                         })
-                .perform(replaceText(title))
+                .perform(replaceText(title));
+        // On desktop, Done does nothing without a soft keyboard; the title is saved when the
+        // dialog closes.
+        if (DeviceInfo.isDesktop()) return;
+        onView(allOf(isDescendantOfA(withId(R.id.main_content)), withId(R.id.title)))
                 .perform(pressImeActionButton());
         verifyTitleTextFocus(cta, false);
     }
@@ -2443,10 +2448,11 @@ public class TabGridDialogTest {
                     boolean isFocused = titleTextView != null && titleTextView.isFocused();
                     Criteria.checkThat(
                             "Title text focus mismatch", isFocused, Matchers.is(shouldFocus));
+                    // Desktop assumes a hardware keyboard, so the soft keyboard is never shown.
                     Criteria.checkThat(
                             "Keyboard visibility mismatch",
                             keyboardVisible,
-                            Matchers.is(shouldFocus));
+                            Matchers.is(shouldFocus && !DeviceInfo.isDesktop()));
                 },
                 CriteriaHelper.DEFAULT_MAX_TIME_TO_POLL_LONG,
                 CriteriaHelper.DEFAULT_POLLING_INTERVAL);

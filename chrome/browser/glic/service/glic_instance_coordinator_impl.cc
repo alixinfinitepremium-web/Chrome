@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <functional>
 #include <string>
+#include <utility>
 
 #include "base/check.h"
 #include "base/check_deref.h"
@@ -124,6 +125,7 @@ GlicInstanceCoordinatorImpl::GlicInstanceCoordinatorImpl(
       service_(service),
       contextual_cueing_service_(contextual_cueing_service),
       memory_consumer_registration_(
+          std::in_place,
           kMemoryConsumerName,
           kGlicInstanceCoordinatorTraits,
           this,
@@ -366,7 +368,8 @@ GlicInstanceCoordinatorImpl::GetAllUnhibernatedWebContents() {
       result;
   for (const auto& entry : instances_) {
     if (entry.second && !entry.second->IsHibernated()) {
-      result.push_back({entry.second->host().webui_contents(),
+      auto* manager = entry.second->host().contents_manager();
+      result.push_back({manager ? manager->webui_contents() : nullptr,
                         entry.second->host().web_client_contents()});
     }
   }
@@ -651,6 +654,7 @@ bool GlicInstanceCoordinatorImpl::MaybeStartWarming(
 }
 
 void GlicInstanceCoordinatorImpl::Shutdown() {
+  memory_consumer_registration_.reset();
   metrics_.OnShutdown();
 
   // Take ownership of the handlers to avoid iterator invalidation when

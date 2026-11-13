@@ -837,6 +837,8 @@ void BrowserCommandController::InitCommandState() {
   command_updater_->UpdateCommandEnabled(IDC_SHOW_IDENTITY_DOCS,
                                          !guest_session);
   command_updater_->UpdateCommandEnabled(IDC_SHOW_TRAVEL, !guest_session);
+  command_updater_->UpdateCommandEnabled(IDC_SHOW_OFFERS_AND_LOYALTY_CARDS,
+                                         !guest_session);
   command_updater_->UpdateCommandEnabled(IDC_HELP_MENU, true);
   command_updater_->UpdateCommandEnabled(IDC_HELP_PAGE_VIA_KEYBOARD, true);
   command_updater_->UpdateCommandEnabled(IDC_HELP_PAGE_VIA_MENU, true);
@@ -924,8 +926,6 @@ void BrowserCommandController::InitCommandState() {
   command_updater_->UpdateCommandEnabled(IDC_SELECT_TAB_6, supports_tabs);
   command_updater_->UpdateCommandEnabled(IDC_SELECT_TAB_7, supports_tabs);
   command_updater_->UpdateCommandEnabled(IDC_SELECT_LAST_TAB, supports_tabs);
-  command_updater_->UpdateCommandEnabled(IDC_SELECT_LAST_ACTIVE_TAB,
-                                         supports_tabs);
   command_updater_->UpdateCommandEnabled(IDC_NEW_TAB_TO_RIGHT, supports_tabs);
   command_updater_->UpdateCommandEnabled(IDC_TAB_SCROLL_BUTTONS_TOGGLE_PIN,
                                          supports_tabs);

@@ -30,6 +30,7 @@
 #import "ios/chrome/browser/intelligence/actor/tools/public/metrics.h"
 #import "ios/chrome/browser/intelligence/actor/tools/utils/actor_tool_utils.h"
 #import "ios/chrome/browser/intelligence/actor/tools/utils/logging_util.h"
+#import "ios/chrome/browser/intelligence/actor/tools/utils/profile_context_resolver.h"
 #import "ios/chrome/browser/intelligence/features/features.h"
 #import "ios/web/public/web_state.h"
 #import "third_party/abseil-cpp/absl/container/flat_hash_set.h"
@@ -168,7 +169,13 @@ ActorEngine::ActorEngine(ExecutionUpdatesDelegate* execution_updates_delegate,
     : state_(State::kInit),
       execution_updates_delegate_(execution_updates_delegate),
       owner_task_(&CHECK_DEREF(owner_task)),
-      origin_gating_delegate_(owner_task_->policy_checker()),
+      // `base::Unretained(owner_task_)` is safe because `owner_task_` owns
+      // `this` (`ActorEngine`) and `origin_gating_delegate_`, so `owner_task_`
+      // strictly outlives `origin_gating_delegate_`.
+      origin_gating_delegate_(
+          owner_task_->policy_checker(),
+          base::BindRepeating(&ActorTask::ConfirmNavigationToOrigin,
+                              base::Unretained(owner_task_))),
       form_filling_handler_(
           ActorTaskFormFillingHandler::Create(base::PassKey<ActorEngine>(),
                                               owner_task_->GetJournal(),
@@ -177,9 +184,7 @@ ActorEngine::ActorEngine(ExecutionUpdatesDelegate* execution_updates_delegate,
           std::make_unique<ToolController>(/*tool_delegate=*/this)) {
   CHECK(execution_updates_delegate_);
   origin_gating::OriginGatingService* origin_gating_service =
-      owner_task_->GetToolFactory()
-          .profile_context_resolver()
-          .GetOriginGatingService();
+      owner_task_->profile_context_resolver().GetOriginGatingService();
   CHECK(origin_gating_service);
   origin_gating_registration_ = origin_gating_service->CreateAndRegisterChecker(
       origin_gating_delegate_.GetWeakPtr(), CreateOriginGatingConfig());
@@ -383,7 +388,7 @@ void ActorEngine::ExecuteNextAction() {
       IsActorOriginGatingEnabled()) {
     base::expected<ProfileContextResolver::TabResolutionResult,
                    ToolExecutionResult>
-        tab_resolution = GetToolFactory().profile_context_resolver().ResolveTab(
+        tab_resolution = owner_task_->profile_context_resolver().ResolveTab(
             action->GetTargetWebStateId().identifier());
     if (!tab_resolution.has_value() || !tab_resolution->web_state) {
       CompleteActions(ActionResult(

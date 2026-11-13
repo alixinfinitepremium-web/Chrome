@@ -3251,17 +3251,6 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
-<histogram name="Media.AudioSystem.GetDeviceDescription.Result"
-    enum="BooleanSuccess" expires_after="2024-03-24">
-  <owner>toprice@chromium.org</owner>
-  <owner>olka@chromium.org</owner>
-  <summary>
-    Records whether AudioSystemToServiceAdapter::GetDeviceDescriptions calls to
-    the audio service returned successfully, or failed and retured an default
-    empty list due to an audio service crash.
-  </summary>
-</histogram>
-
 <histogram name="Media.AudioThreadStatus" enum="AudioThreadStatus"
     expires_after="never">
 <!-- expires-never: Audio pipeline health metric. -->
@@ -4536,7 +4525,7 @@ chromium-metrics-reviews@google.com.
   </summary>
 </histogram>
 
-<histogram name="Media.EME.MediaFoundationCdm.ActivateCdmFactory"
+<histogram name="Media.EME.MediaFoundationCdm.ActivateCdmFactoryResult"
     enum="Hresult" expires_after="2027-09-22">
   <owner>sangbaekpark@chromium.org</owner>
   <owner>media-dev-uma@chromium.org</owner>
@@ -7988,39 +7977,6 @@ chromium-metrics-reviews@google.com.
     button is clicked. CancelSharingAfterDenial: When the user cancels the
     dialog after a permission denial. Share...AfterDenial: When the user accepts
     a selected source after a permission denial.
-  </summary>
-</histogram>
-
-<histogram
-    name="Media.Ui.GetDisplayMedia.BasicFlow.HighlightedTabDiscardStatus"
-    enum="HighlightedTabDiscardStatus" expires_after="2025-08-24">
-  <owner>eladalon@chromium.org</owner>
-  <owner>mfoltz@chromium.org</owner>
-  <summary>
-    When getDisplayMedia() is called, the user is shown a list of tabs, windows
-    and screens they can choose to capture. If the user highlights a discarded
-    tab, no preview is shown - which is a problem. This histogram tracks how
-    often the user sees at least one missing preview due to highlighting a
-    discarded tab. (Contrast this with SelectedTabDiscardStatus.) The histogram
-    is recorded when the media-picker dialog is closed - either through the user
-    accepting or rejecting the dialog, or if the document that called
-    getDisplayMedia() is unloaded (e.g. if the tab is closed).
-  </summary>
-</histogram>
-
-<histogram name="Media.Ui.GetDisplayMedia.BasicFlow.SelectedTabDiscardStatus"
-    enum="SelectedTabDiscardStatus" expires_after="2025-08-24">
-  <owner>eladalon@chromium.org</owner>
-  <owner>mfoltz@chromium.org</owner>
-  <summary>
-    When getDisplayMedia() is called, the user is shown a list of tabs, windows
-    and screens they can choose to capture. If the user highlights a discarded
-    tab, no preview is shown - which is a problem. This histogram tracks how
-    often the user ends up choosing to share a discarded tab. (Contrast this
-    with HighlightedTabDiscardStatus.) The histogram is recorded when the
-    media-picker dialog is closed - either through the user accepting or
-    rejecting the dialog, or if the document that called getDisplayMedia() is
-    unloaded (e.g. if the tab is closed).
   </summary>
 </histogram>
 

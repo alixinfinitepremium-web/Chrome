@@ -99,7 +99,6 @@ class PDFiumPermissions;
 class Thumbnail;
 enum class AccessibilityScrollAlignment;
 struct AccessibilityActionData;
-struct AccessibilityFocusInfo;
 struct PageCharacterIndex;
 
 #if BUILDFLAG(ENABLE_SCREEN_AI_SERVICE)
@@ -395,9 +394,6 @@ class PDFiumEngine : public DocumentLoader::Client,
 
   bool has_focus() const { return has_focus_; }
 
-  // Returns the focus info of current focus item.
-  AccessibilityFocusInfo GetFocusInfo();
-
   // Returns whether the "/Marked" attribute in the "MarkInfo" dictionary in the
   // PDF's catalog is set to true. This should indicate whether the PDF includes
   // a tree of structural elements which describe the logical organization of
@@ -676,6 +672,17 @@ class PDFiumEngine : public DocumentLoader::Client,
                          int page_to_search,
                          AddSearchResultCallback add_result_callback);
 
+  // Highlights case-insensitive matches of non-empty `search_terms`, replacing
+  // any prior highlights. `search_terms` must be non-empty. Returns true if any
+  // match was found.
+  virtual bool FindAndHighlightSearchTerms(
+      base::span<const std::string_view> search_terms);
+
+  // Scrolls to the first search highlight at or after `start_page_index`,
+  // wrapping around if needed. `text_fragment_highlights_` must be non-empty
+  // and sorted by page index.
+  virtual void ScrollToFirstSearchResult(uint32_t start_page_index);
+
   // Sets whether caret browsing is enabled or not. Initializes `caret_` if it
   // is the first time enabling caret browsing mode. If the caret was disabled
   // and is now enabled, then moves the caret to the start of the first visible
@@ -689,6 +696,10 @@ class PDFiumEngine : public DocumentLoader::Client,
 
   base::span<const PDFiumRange> find_results_for_testing() const {
     return find_results_;
+  }
+
+  base::span<const PDFiumRange> text_fragment_highlights_for_testing() const {
+    return text_fragment_highlights_;
   }
 
  private:
@@ -1489,7 +1500,7 @@ class PDFiumEngine : public DocumentLoader::Client,
   // state, such as its position, blink interval, etc.
   std::unique_ptr<PdfCaret> caret_;
 
-  // The list of text fragments to highlight on the PDF.
+  // Text fragments or URL `#search=` matches to highlight on the PDF.
   std::vector<PDFiumRange> text_fragment_highlights_;
 
 #if BUILDFLAG(ENABLE_PDF_INK2)

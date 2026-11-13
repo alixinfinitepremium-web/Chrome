@@ -1907,6 +1907,8 @@ void PdfViewWebPlugin::OnMessage(const base::DictValue& message) {
           {"getSuggestedFileName",
            &PdfViewWebPlugin::HandleGetSuggestedFileName},
           {"getThumbnail", &PdfViewWebPlugin::HandleGetThumbnailMessage},
+          {"highlightSearchTerms",
+           &PdfViewWebPlugin::HandleHighlightSearchTermsMessage},
           {"highlightTextFragments",
            &PdfViewWebPlugin::HandleHighlightTextFragmentsMessage},
           {"print", &PdfViewWebPlugin::HandlePrintMessage},
@@ -2033,6 +2035,21 @@ void PdfViewWebPlugin::HandleGetThumbnailMessage(
       page_index, device_scale_,
       base::BindOnce(&PdfViewWebPlugin::SendThumbnail,
                      weak_factory_.GetWeakPtr(), std::move(reply), page_index));
+}
+
+void PdfViewWebPlugin::HandleHighlightSearchTermsMessage(
+    const base::DictValue& message) {
+  const auto* search_terms_value_list = message.FindList("searchTerms");
+  CHECK(search_terms_value_list);
+  std::vector<std::string_view> search_terms;
+  search_terms.reserve(search_terms_value_list->size());
+  for (const base::Value& term : *search_terms_value_list) {
+    search_terms.push_back(term.GetString());
+  }
+  if (engine_->FindAndHighlightSearchTerms(search_terms)) {
+    engine_->ScrollToFirstSearchResult(base::checked_cast<uint32_t>(
+        message.FindInt("startPageIndex").value()));
+  }
 }
 
 void PdfViewWebPlugin::HandleHighlightTextFragmentsMessage(
@@ -3349,9 +3366,6 @@ void PdfViewWebPlugin::PrepareAndSetAccessibilityViewportInfo() {
                                                   1 / (device_scale_ * zoom_));
   viewport_info.zoom = zoom_;
   viewport_info.scale = device_scale_;
-  viewport_info.orientation =
-      static_cast<int32_t>(engine_->GetCurrentOrientation());
-  viewport_info.focus_info = {FocusObjectType::kNone, 0, 0};
 
   std::optional<Selection> selection = engine_->GetSelection();
   if (selection.has_value()) {
