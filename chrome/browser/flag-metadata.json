@@ -2486,6 +2486,11 @@
     "expiry_milestone": 160
   },
   {
+    "name": "contextual-tasks-entry-points",
+    "owners": [ "ender@google.com", "chrome-contextual-tasks-eng@google.com" ],
+    "expiry_milestone": 165
+  },
+  {
     "name": "contextual-tasks-ephemeral-branded-entry-point",
     "owners": ["mercerd@google.com", "chrome-contextual-tasks-eng@google.com"],
     "expiry_milestone": 160
@@ -7812,6 +7817,11 @@
     "expiry_milestone": 130
   },
   {
+    "name": "omnibox-stateful-ai-mode-button",
+    "owners": [ "peterkang@google.com", "chrome-mobile-search@google.com" ],
+    "expiry_milestone": 170
+  },
+  {
     "name": "omnibox-toolbelt",
     "owners": ["orin@google.com", "manukh@google.com", "chrome-omnibox-team@google.com"],
     "expiry_milestone": 150
@@ -9693,6 +9703,11 @@
     "expiry_milestone": 162
   },
   {
+    "name": "ttc-get-pointer",
+    "owners": [ "jamescook@chromium.org", "//chrome/browser/ttc/OWNERS" ],
+    "expiry_milestone": 166
+  },
+  {
     "name": "ttc-live-recipe",
     "owners": [ "//chrome/browser/ttc/OWNERS" ],
     "expiry_milestone": 162
@@ -9828,11 +9843,6 @@
     "name": "use-chime-android-sdk",
     "owners": [ "xingliu@chromium.org" ],
     "expiry_milestone": 102
-  },
-  {
-    "name": "use-dhcpcd10",
-    "owners": [ "chenzikai@google.com", "cros-networking@google.com" ],
-    "expiry_milestone": 160
   },
   {
     "name": "use-fake-device-for-media-stream",

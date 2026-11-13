@@ -2110,6 +2110,26 @@
             ]
         }
     ],
+    "AutofillEnableOAuth2TokenFix": [
+        {
+            "platforms": [
+                "android",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "AutofillEnableOAuth2TokenFix"
+                    ]
+                }
+            ]
+        }
+    ],
     "AutofillEnableOmniboxAutofill": [
         {
             "platforms": [
@@ -5186,6 +5206,22 @@
             ]
         }
     ],
+    "ClankStartupTabOptimizations": [
+        {
+            "platforms": [
+                "android",
+                "android_desktop"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ClankStartupTabOptimizations"
+                    ]
+                }
+            ]
+        }
+    ],
     "ClearBrokenAlternativeServicesOnDefaultNetworkChange": [
         {
             "platforms": [
@@ -5290,6 +5326,26 @@
                     },
                     "enable_features": [
                         "ClientSideDetectionBypassTiers"
+                    ]
+                }
+            ]
+        }
+    ],
+    "ClientSideDetectionCopyFromSurface": [
+        {
+            "platforms": [
+                "android",
+                "android_desktop",
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ClientSideDetectionCopyFromSurface"
                     ]
                 }
             ]
@@ -6147,6 +6203,7 @@
                         "ContextualTasksEphemeralBrandedEntryPoint",
                         "ContextualTasksEphemeralButtonAutoDismiss",
                         "ContextualTasksEphemeralButtonContextMenu",
+                        "ContextualTasksEphemeralPinButtonRefactor",
                         "ContextualTasksPinnedButtonActiveIndicator",
                         "ContextualTasksPinningStringVariants",
                         "ContextualTasksPinningV2",
@@ -6156,7 +6213,6 @@
                         "EnableContextualTasksPinButtonOnSrp"
                     ],
                     "disable_features": [
-                        "ContextualTasksEphemeralPinButtonRefactor",
                         "ContextualTasksHideMenuOnAiPage",
                         "EphemeralPinningVisibleWhenPermanentlyPinned"
                     ]
@@ -9119,6 +9175,21 @@
                     "name": "Enabled",
                     "enable_features": [
                         "FullscreenVideoPictureInPicture"
+                    ]
+                }
+            ]
+        }
+    ],
+    "FuseboxPlusButtonIPH": [
+        {
+            "platforms": [
+                "android"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled_20261112",
+                    "enable_features": [
+                        "IPH_FuseboxPlusButtonHint"
                     ]
                 }
             ]
@@ -17365,27 +17436,6 @@
             ]
         }
     ],
-    "RustyJpegFeature": [
-        {
-            "platforms": [
-                "android",
-                "android_webview",
-                "chromeos",
-                "ios",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "RustyJpegExperiment",
-                    "enable_features": [
-                        "RustyJpegFeature"
-                    ]
-                }
-            ]
-        }
-    ],
     "SQLitePersistentCookieStoreEarlyInit": [
         {
             "platforms": [
@@ -19303,6 +19353,22 @@
             ]
         }
     ],
+    "TabUiDataVirtualization": [
+        {
+            "platforms": [
+                "android",
+                "android_desktop"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "TabUiDataVirtualization"
+                    ]
+                }
+            ]
+        }
+    ],
     "TaiyakiNonListItem": [
         {
             "platforms": [
@@ -19361,6 +19427,7 @@
         {
             "platforms": [
                 "android",
+                "android_desktop",
                 "android_webview",
                 "chromeos",
                 "linux",
@@ -19404,10 +19471,11 @@
             ],
             "experiments": [
                 {
-                    "name": "Enabled",
+                    "name": "EnabledV2",
                     "enable_features": [
                         "ColorIdCssStyleSheetOptimization",
-                        "ThemeChangeOptimization"
+                        "ThemeChangeOptimization",
+                        "ThemeChangeOptimizationV2"
                     ]
                 }
             ]

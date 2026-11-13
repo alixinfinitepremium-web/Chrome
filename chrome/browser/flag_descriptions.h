@@ -1919,6 +1919,10 @@ inline constexpr char kTtcFreName[] = "TTC FRE";
 inline constexpr char kTtcFreDescription[] =
     "Enables the first run experience for TTC.";
 
+inline constexpr char kTtcGetPointerName[] = "TTC Get Pointer";
+inline constexpr char kTtcGetPointerDescription[] =
+    "Enables the get_pointer tool for TTC.";
+
 inline constexpr char kActorObserveScreenshotDefaultName[] =
     "Actor observe screenshot default";
 inline constexpr char kActorObserveScreenshotDefaultDescription[] =
@@ -3878,6 +3882,12 @@ inline constexpr char kOmniboxNativeVectorIconsDescription[] =
     "Sources Omnibox suggestion icons from the native vector icon definitions "
     "shared with desktop, rasterized on demand, instead of Android XML "
     "drawables";
+
+inline constexpr char kOmniboxStatefulAiModeButtonName[] =
+    "Omnibox Stateful AI Mode Button";
+inline constexpr char kOmniboxStatefulAiModeButtonDescription[] =
+    "Keeps the AI Mode button visible in the desktop omnibox while in AI Mode, "
+    "and turns it into a send button once there is something to submit";
 
 inline constexpr char kOmniboxVoicePlateIntentName[] =
     "Omnibox Voice Plate Intent";
@@ -8038,11 +8048,6 @@ inline constexpr char kUseAnnotatedAccountIdName[] =
 inline constexpr char kUseAnnotatedAccountIdDescription[] =
     "Uses AccountId annotated for BrowserContext to look up between ChromeOS "
     "User and BrowserContext, a.k.a. Profile.";
-
-inline constexpr char kUseDHCPCD10Name[] = "Use dhcpcd10 for IPv4";
-inline constexpr char kUseDHCPCD10Description[] =
-    "Use dhcpcd10 for IPv4 provisioning, otherwise the legacy dhcpcd7 "
-    "will be used. Note that IPv6 (DHCPv6-PD) will always use dhcpcd10.";
 
 inline constexpr char kUseFakeDeviceForMediaStreamName[] =
     "Use fake video capture device";

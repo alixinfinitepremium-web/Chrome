@@ -337,7 +337,7 @@ void RecordTabAddedMetric(
     contextual_search::ContextualSearchMetricsRecorder* metrics_recorder,
     bool is_tab_suggestion_chip,
     BrowserWindowInterface* browser_window_interface) {
-  if (!metrics_recorder || !tab) {
+  if (!metrics_recorder || !tab || !tab->GetContents()) {
     return;
   }
   if (!browser_window_interface) {
@@ -363,6 +363,9 @@ void RecordTabAddedMetric(
   auto all_tabs = tab_list->GetAllTabs();
   for (size_t i = 0; i < all_tabs.size(); i++) {
     tabs::TabInterface* tab_interface = all_tabs[i];
+    if (!tab_interface || !tab_interface->GetContents()) {
+      continue;
+    }
 
     const std::u16string& tab_title = tab_interface->GetContents()->GetTitle();
     if (tab_title == current_title) {
@@ -694,7 +697,7 @@ std::unique_ptr<ContextualTasksPanelHost> ContextualTasksPanelHost::Create(
     BrowserWindowInterface* browser_window) {
 #if BUILDFLAG(IS_ANDROID)
   // We shouldn't reach this method for phones and tablets.
-  CHECK(IsAndroidDesktopFormFactor());
+  CHECK(IsContextualTasksFormFactorSupported());
   return std::make_unique<ContextualTasksPanelHostDesktopAndroid>(
       browser_window);
 #else

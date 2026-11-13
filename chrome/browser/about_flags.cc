@@ -797,22 +797,10 @@ const FeatureEntry::FeatureVariation kWebAppShortEdgesCutoutModeVariations[] = {
      kWebAppShortEdgesCutoutModeStandaloneAndTwa, nullptr}};
 
 const FeatureEntry::FeatureParam
-    kEnableSwipeToSwitchPaneEmphasizedMaxDuration250ms[] = {
-        {"use_emphasized_interpolator", "true"},
-        {"max_duration_ms", "250"}};
-const FeatureEntry::FeatureParam
-    kEnableSwipeToSwitchPaneEmphasizedMaxDuration200ms[] = {
-        {"use_emphasized_interpolator", "true"},
-        {"max_duration_ms", "200"}};
-const FeatureEntry::FeatureParam
     kEnableSwipeToSwitchPaneWithSearchBoxAnimation[] = {
         {"animate_search_box", "true"}};
 
 const FeatureEntry::FeatureVariation kEnableSwipeToSwitchPaneVariations[] = {
-    {"Emphasized curve (max duration 250ms)",
-     kEnableSwipeToSwitchPaneEmphasizedMaxDuration250ms, nullptr},
-    {"Emphasized curve (max duration 200ms)",
-     kEnableSwipeToSwitchPaneEmphasizedMaxDuration200ms, nullptr},
     {"with search box animation",
      kEnableSwipeToSwitchPaneWithSearchBoxAnimation, nullptr}};
 
@@ -4764,6 +4752,14 @@ const FeatureEntry::FeatureVariation
          kContextualTasksUpdatedEntryPointsOmniboxRouting, nullptr},
         {"with submenu", kContextualTasksUpdatedEntryPointsSubmenu, nullptr}};
 
+const FeatureEntry::FeatureParam
+    kContextualTasksEntryPointsWithOmniboxContextualSuggestions[] = {
+        {"omnibox_contextual_suggestions", "true"}};
+
+const FeatureEntry::FeatureVariation kContextualTasksEntryPointsVariations[] = {
+    {"with omnibox contextual suggestions",
+     kContextualTasksEntryPointsWithOmniboxContextualSuggestions, nullptr}};
+
 #if BUILDFLAG(IS_ANDROID)
 const FeatureEntry::FeatureParam kAnimatedProgressBar30FpsCap[] = {
     {"fps_cap", "30"}};
@@ -5644,9 +5640,6 @@ const FeatureEntry kFeatureEntries[] = {
     {"enable-root-ns-dns-proxy", flag_descriptions::kEnableRootNsDnsProxyName,
      flag_descriptions::kEnableRootNsDnsProxyDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kEnableRootNsDnsProxy)},
-    {"use-dhcpcd10", flag_descriptions::kUseDHCPCD10Name,
-     flag_descriptions::kUseDHCPCD10Description, kOsCrOS,
-     FEATURE_VALUE_TYPE(ash::features::kUseDHCPCD10)},
     {"window-preview-on-shelf", flag_descriptions::kWindowPreviewOnShelfName,
      flag_descriptions::kWindowPreviewOnShelfDescription, kOsCrOS,
      FEATURE_VALUE_TYPE(ash::features::kWindowPreviewOnShelf)},
@@ -7097,6 +7090,11 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kOmniboxNativeVectorIconsName,
      flag_descriptions::kOmniboxNativeVectorIconsDescription, kOsAndroid,
      FEATURE_VALUE_TYPE(omnibox::kOmniboxNativeVectorIcons)},
+
+    {"omnibox-stateful-ai-mode-button",
+     flag_descriptions::kOmniboxStatefulAiModeButtonName,
+     flag_descriptions::kOmniboxStatefulAiModeButtonDescription, kOsAndroid,
+     FEATURE_VALUE_TYPE(omnibox::kOmniboxStatefulAiModeButton)},
 
     {"omnibox-post-frame-autocomplete-start",
      flag_descriptions::kOmniboxPostFrameAutocompleteStartName,
@@ -12152,6 +12150,16 @@ const FeatureEntry kFeatureEntries[] = {
      kOsAndroid,
      FEATURE_VALUE_TYPE(contextual_tasks::kAllowSignedOutUserInDesktopAndroid)},
 
+    {"contextual-tasks-entry-points",
+     contextual_tasks::flag_descriptions::kContextualTasksEntryPointsName,
+     contextual_tasks::flag_descriptions::
+         kContextualTasksEntryPointsDescription,
+     kOsAndroid,
+     FEATURE_WITH_PARAMS_VALUE_TYPE(
+         contextual_tasks::kContextualTasksEntryPoints,
+         kContextualTasksEntryPointsVariations,
+         "ContextualTasksEntryPoints")},
+
     {"omnibox-debug-logs", omnibox::flag_descriptions::kOmniboxDebugLogsName,
      omnibox::flag_descriptions::kOmniboxDebugLogsDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(omnibox::kOmniboxDebugLogs)},
@@ -13924,6 +13932,10 @@ const FeatureEntry kFeatureEntries[] = {
     {"ttc-fre", flag_descriptions::kTtcFreName,
      flag_descriptions::kTtcFreDescription, kOsDesktop | kOsAndroid,
      FEATURE_VALUE_TYPE(ttc::kTtcFre)},
+
+    {"ttc-get-pointer", flag_descriptions::kTtcGetPointerName,
+     flag_descriptions::kTtcGetPointerDescription, kOsDesktop | kOsAndroid,
+     FEATURE_VALUE_TYPE(ttc::kTtcGetPointer)},
 
     {"ttc-live-recipe", flag_descriptions::kTtcLiveRecipeName,
      flag_descriptions::kTtcLiveRecipeDescription, kOsDesktop | kOsAndroid,

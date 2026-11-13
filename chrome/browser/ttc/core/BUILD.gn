@@ -112,8 +112,12 @@ source_set("impl") {
     "page_context.cc",
     "page_context_util.cc",
     "page_context_util.h",
+    "pointer_context_capturer.cc",
+    "pointer_context_capturer.h",
     "pointer_crop_geometry.cc",
     "pointer_crop_geometry.h",
+    "pointer_hit_test.cc",
+    "pointer_hit_test.h",
     "pointer_image_annotator.cc",
     "pointer_image_annotator.h",
     "pointer_input_observer.cc",
@@ -171,6 +175,7 @@ source_set("impl") {
     "//components/critical_actions/core/browser",
     "//components/keyed_service/core",
     "//components/optimization_guide/content/browser",
+    "//components/page_content_annotations/core",
     "//components/sessions:session_id",
     "//components/tabs:public",
     "//components/ttc/app/public",
@@ -179,6 +184,7 @@ source_set("impl") {
     "//mojo/public/cpp/bindings",
     "//skia",
     "//third_party/blink/public/common:headers",
+    "//third_party/blink/public/mojom:mojom_platform_headers",
     "//ui/actions:actions_headers",
     "//ui/base/idle",
     "//ui/gfx/codec",
@@ -275,6 +281,7 @@ source_set("unit_tests") {
     "lock_or_suspend_detector_unittest.cc",
     "page_context_util_unittest.cc",
     "pointer_crop_geometry_unittest.cc",
+    "pointer_hit_test_unittest.cc",
     "pointer_image_annotator_unittest.cc",
     "pointer_tracker_unittest.cc",
     "session_controller_impl_unittest.cc",
@@ -370,8 +377,10 @@ source_set("browser_test_support") {
 source_set("browser_tests") {
   testonly = true
   defines = [ "HAS_OUT_OF_PROC_TEST_RUNNER" ]
+  data = [ "//chrome/test/data/ttc/" ]
   sources = [
     "page_context_monitor_browsertest.cc",
+    "pointer_context_capturer_browsertest.cc",
     "pointer_input_observer_browsertest.cc",
     "session_controller_impl_browsertest.cc",
     "session_journal_impl_browsertest.cc",

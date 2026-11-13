@@ -563,6 +563,7 @@ public abstract class ChromeFeatureList {
     public static final String CONTEXTUAL_SEARCH_SUPPRESS_SHORT_VIEW =
             "ContextualSearchSuppressShortView";
     public static final String CONTEXTUAL_TASKS = "ContextualTasks";
+    public static final String CONTEXTUAL_TASKS_ENTRY_POINTS = "ContextualTasksEntryPoints";
     public static final String CONTEXTUAL_TASKS_SIDE_PANEL = "ContextualTasksSidePanel";
     public static final String CONTEXT_MENU_COPY_VIDEO_FRAME_ANDROID = "ContextMenuCopyVideoFrame";
     public static final String CONTEXT_MENU_DOWNLOAD_VIDEO_FRAME_ANDROID =
@@ -1186,7 +1187,10 @@ public abstract class ChromeFeatureList {
     public static final CachedFlag sClankStartupLatencyInjection =
             newCachedFlag(CLANK_STARTUP_LATENCY_INJECTION, false);
     public static final CachedFlag sClankStartupTabOptimizations =
-            newCachedFlag(CLANK_STARTUP_TAB_OPTIMIZATIONS, false);
+            newCachedFlag(
+                    CLANK_STARTUP_TAB_OPTIMIZATIONS,
+                    /* defaultValue= */ false,
+                    /* defaultValueInTests= */ true);
     public static final CachedFlag sClearIntentWhenRecreated =
             newCachedFlag(CLEAR_INTENT_WHEN_RECREATED, /* defaultValue= */ false);
     public static final CachedFlag sCommandLineOnNonRooted =
@@ -1828,6 +1832,8 @@ public abstract class ChromeFeatureList {
             newMutableFlagWithSafeDefault(BROWSING_HISTORY_FILTER_BY_DOMAIN_V2, false);
     public static final MutableFlagWithSafeDefault sBrowsingHistoryFilterByTime =
             newMutableFlagWithSafeDefault(BROWSING_HISTORY_FILTER_BY_TIME, false);
+    public static final MutableFlagWithSafeDefault sContextualTasksEntryPoints =
+            newMutableFlagWithSafeDefault(CONTEXTUAL_TASKS_ENTRY_POINTS, false);
     public static final MutableFlagWithSafeDefault sCriticalActionHistory =
             newMutableFlagWithSafeDefault(CRITICAL_ACTION_HISTORY, false);
     public static final MutableFlagWithSafeDefault sCrossWindowTabGroupOperations =
@@ -2662,6 +2668,19 @@ public abstract class ChromeFeatureList {
     public static final MutableIntParamWithSafeDefault
             sAutofillCardScanningBugfixesAvailabilityTimeoutMs =
                     sAutofillCardScanningBugfixes.newIntParam("availability_timeout_ms", 200);
+    public static final MutableBooleanParamWithSafeDefault sContextualTasksEntryPointsAppMenu =
+            sContextualTasksEntryPoints.newBooleanParam("app_menu", true);
+    public static final MutableBooleanParamWithSafeDefault
+            sContextualTasksEntryPointsImageContextMenu =
+                    sContextualTasksEntryPoints.newBooleanParam("image_context_menu", true);
+    public static final MutableBooleanParamWithSafeDefault sContextualTasksEntryPointsOmnibox =
+            sContextualTasksEntryPoints.newBooleanParam("omnibox", true);
+    public static final MutableBooleanParamWithSafeDefault
+            sContextualTasksEntryPointsPageContextMenu =
+                    sContextualTasksEntryPoints.newBooleanParam("page_context_menu", true);
+    public static final MutableBooleanParamWithSafeDefault
+            sContextualTasksEntryPointsToolbarButton =
+                    sContextualTasksEntryPoints.newBooleanParam("toolbar_button", true);
     public static final MutableBooleanParamWithSafeDefault
             sCrossWindowTabGroupOperationsRemoteGroupOperations =
                     sCrossWindowTabGroupOperations.newBooleanParam(
@@ -2705,11 +2724,6 @@ public abstract class ChromeFeatureList {
                             "release_slot_on_dom_content_loaded", false);
     public static final MutableBooleanParamWithSafeDefault sSwipeToSwitchPaneAnimateSearchBox =
             sEnableSwipeToSwitchPane.newBooleanParam("animate_search_box", false);
-    public static final MutableIntParamWithSafeDefault sSwipeToSwitchPaneMaxDurationMs =
-            sEnableSwipeToSwitchPane.newIntParam("max_duration_ms", 250);
-    public static final MutableBooleanParamWithSafeDefault
-            sSwipeToSwitchPaneUseEmphasizedInterpolator =
-                    sEnableSwipeToSwitchPane.newBooleanParam("use_emphasized_interpolator", false);
     public static final MutableBooleanParamWithSafeDefault
             sTabBottomSheetSuppressBottomToolbarWhileOpen =
                     sTabBottomSheet.newBooleanParam("suppress_bottom_toolbar_while_open", false);

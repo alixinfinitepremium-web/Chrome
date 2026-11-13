@@ -3468,22 +3468,12 @@
       status: "stable",
     },
     {
-      // crbug.com/393391746
-      name: "FontStyleObliqueZeroDegreeAsNormal",
-      status: "stable",
-    },
-    {
       // crbug.com/325826179
       name: "FontUniqueNameTypefaceCache",
       status: "stable",
     },
     {
       name: "FontVariableItalicAxis",
-      status: "stable",
-    },
-    {
-      // crbug.com/40398871
-      name: "FontVariationSettingsDescriptor",
       status: "stable",
     },
     {
@@ -6592,6 +6582,12 @@
       status: "stable",
     },
     {
+      // Kill switch for image context menu actions and copying rendered images
+      // from standalone SVG documents.
+      name: "StandaloneSVGImageActions",
+      status: "stable",
+    },
+    {
       // See https://github.com/w3c/csswg-drafts/issues/9398
       name: "StandardizedBrowserZoom",
       status: "stable",
@@ -7910,7 +7906,12 @@
     },
     {
       name: "WebSpeechTimestamps",
-      status: "experimental",
+      status: {
+        "Win": "stable",
+        "Mac": "stable",
+        "Linux": "stable",
+        "default": "",
+      },
     },
     {
       name: "WebSpeechUnspokenPunctuation",

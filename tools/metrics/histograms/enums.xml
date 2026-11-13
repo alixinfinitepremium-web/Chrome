@@ -10006,6 +10006,7 @@ from previous Chrome versions.
   <int value="-1498334893" label="ExperimentalVRFeatures:enabled"/>
   <int value="-1498297966"
       label="AutofillEnableBuyNowPayLaterForExternallyLinked:enabled"/>
+  <int value="-1498178826" label="TtcGetPointer:disabled"/>
   <int value="-1497893203" label="SyncSearchEnginesAndroidLFF:disabled"/>
   <int value="-1497450774" label="TreatUnsafeDownloadsAsActive:disabled"/>
   <int value="-1497338981" label="disable-accelerated-overflow-scroll"/>
@@ -10251,6 +10252,7 @@ from previous Chrome versions.
   <int value="-1433156012" label="AppListDragAndDropRefactor:disabled"/>
   <int value="-1433087548" label="enable-app-install-alerts"/>
   <int value="-1432246303" label="FilesZipPack:enabled"/>
+  <int value="-1431957075" label="OmniboxStatefulAiModeButton:disabled"/>
   <int value="-1431722713" label="TabFreeze:disabled"/>
   <int value="-1431563697" label="WebPaymentsMethodSectionOrderV2:enabled"/>
   <int value="-1431510203" label="HistoryPaneAndroid:enabled"/>
@@ -10784,6 +10786,7 @@ from previous Chrome versions.
   <int value="-1274502866" label="AllowDisableMouseAcceleration:enabled"/>
   <int value="-1274154806" label="LacrosWaylandLogging:disabled"/>
   <int value="-1273786900" label="SyncAndroidPromosWithTitle:disabled"/>
+  <int value="-1273384744" label="TtcGetPointer:enabled"/>
   <int value="-1272990935"
       label="SyncAndroidLimitNTPPromoImpressions:disabled"/>
   <int value="-1272593346" label="NewTabLoadingAnimation:disabled"/>
@@ -13082,6 +13085,7 @@ from previous Chrome versions.
   <int value="-592148755" label="RoundedWindows:enabled"/>
   <int value="-591874964" label="LiteVideo:enabled"/>
   <int value="-591219096" label="SystemChinesePhysicalTyping:enabled"/>
+  <int value="-590107209" label="ContextualTasksEntryPoints:disabled"/>
   <int value="-589491568" label="DataSharingNonProductionEnvironment:disabled"/>
   <int value="-589096918" label="ash-enable-fullscreen-app-list"/>
   <int value="-588491904" label="glic-reset-mi-enabled-by-tier:disabled"/>
@@ -15513,6 +15517,7 @@ from previous Chrome versions.
   <int value="131188289" label="GlicActorUiMagicCursor:enabled"/>
   <int value="131533451" label="EdgeToEdgeAutomotive:disabled"/>
   <int value="131881947" label="D3DVsync:enabled"/>
+  <int value="132187246" label="ContextualTasksEntryPoints:enabled"/>
   <int value="132560299"
       label="OmniboxUIExperimentHideSteadyStateUrlScheme:disabled"/>
   <int value="132907995" label="DownloadProgressMessage:enabled"/>
@@ -19877,6 +19882,7 @@ from previous Chrome versions.
       label="ReleaseNotesNotificationAlwaysEligible:disabled"/>
   <int value="1429031731"
       label="CrossOriginEmbedderPolicyCredentialless:enabled"/>
+  <int value="1429485117" label="OmniboxStatefulAiModeButton:enabled"/>
   <int value="1429923065" label="enable-media-internals:enabled"/>
   <int value="1430924529" label="TranslateIntent:enabled"/>
   <int value="1431050645" label="PayWithGoogleV1:disabled"/>

@@ -11453,6 +11453,14 @@ Check your passwords anytime in <ph name="GOOGLE_PASSWORD_MANAGER">$1<ex>Google 
       <message name="IDS_PICTURE_IN_PICTURE_MINIMIZE_CONTROL_TEXT" desc="Text label of the minimize control button. The button appears when the user hovers over the Picture-in-Picture window.">
         Minimize
       </message>
+      <if expr="is_chromeos">
+        <message name="IDS_PICTURE_IN_PICTURE_PIN_WINDOW_TEXT" desc="Text label of the pin control button. Pressing the button keeps the Picture-in-Picture window where the user places it, instead of snapping it to the edge of the screen. The button appears in the Picture-in-Picture window.">
+          Pin window
+        </message>
+        <message name="IDS_PICTURE_IN_PICTURE_UNPIN_WINDOW_TEXT" desc="Text label of the unpin control button. Pressing the button snaps the Picture-in-Picture window to the edge of the screen again. The button appears in the Picture-in-Picture window when the window is pinned.">
+          Unpin window
+        </message>
+      </if>
       <message name="IDS_PICTURE_IN_PICTURE_LIVE_CAPTION_CONTROL_TEXT" desc="Text label of the live caption button. The button appears when the user hovers over the Picture-in-Picture window.">
         Live Caption
       </message>
@@ -18210,8 +18218,11 @@ Please help our engineers fix this problem. Tell us what happened right before y
     </if>
 
     <!-- Glic Activity Hub Strings -->
-    <message name="IDS_GLIC_ACTIVITY_TITLE_GEMINI" desc="Default title shown in the Glic Activity Hub for a Gemini conversation.">
-      Gemini
+    <message name="IDS_GLIC_ACTIVITY_NEW_CHAT" desc="Placeholder title for a conversation row in the Gemini in Chrome Activity Hub bubble when the conversation does not have a title yet. Noun phrase.">
+      New chat
+    </message>
+    <message name="IDS_GLIC_ACTIVITY_UNTITLED_TASK" desc="Placeholder title for an automated task row in the Gemini in Chrome Activity Hub bubble when the task does not have a title. Noun phrase.">
+      Untitled task
     </message>
     <message name="IDS_GLIC_ACTIVITY_WORKING" desc="Status text shown in the Glic Activity Hub when Gemini is generating a response or performing a task.">
       Working…
