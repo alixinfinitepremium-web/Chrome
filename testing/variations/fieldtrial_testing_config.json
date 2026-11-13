@@ -1758,22 +1758,6 @@
             ]
         }
     ],
-    "AutofillAiEditEntitiesFromSaveUpdatePrompt": [
-        {
-            "platforms": [
-                "android",
-                "android_desktop"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "AutofillAiEditEntitiesFromSaveUpdatePrompt"
-                    ]
-                }
-            ]
-        }
-    ],
     "AutofillAiIos": [
         {
             "platforms": [
@@ -3198,24 +3182,6 @@
                     },
                     "enable_features": [
                         "ManageYourSavedInfoPerceptionSurvey"
-                    ]
-                }
-            ]
-        }
-    ],
-    "AutomatedPasswordChangeWithPrivateInferenceLoginCheck": [
-        {
-            "platforms": [
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "PasswordChangeWithPrivateInferenceLoginCheck"
                     ]
                 }
             ]
@@ -8530,6 +8496,21 @@
             ]
         }
     ],
+    "EventReportingCdpAttribution": [
+        {
+            "platforms": [
+                "mac"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "EventReportingCdpAttribution"
+                    ]
+                }
+            ]
+        }
+    ],
     "EventTimingIgnorePresentationTimeFromUnexpectedFrameSource": [
         {
             "platforms": [
@@ -11504,6 +11485,21 @@
             ]
         }
     ],
+    "IOSLensOnIPad": [
+        {
+            "platforms": [
+                "ios"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "EnableLensOnIPad"
+                    ]
+                }
+            ]
+        }
+    ],
     "IOSLensTripleCameraWith90Zoom": [
         {
             "platforms": [
@@ -11637,21 +11633,6 @@
                     },
                     "enable_features": [
                         "PrivateInsightsFeature"
-                    ]
-                }
-            ]
-        }
-    ],
-    "IOSSaveToDriveSignedOut": [
-        {
-            "platforms": [
-                "ios"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "IOSSaveToDriveSignedOut"
                     ]
                 }
             ]
@@ -12949,6 +12930,28 @@
             ]
         }
     ],
+    "MetricsLogTrimmingAndFeatureAccessWebView": [
+        {
+            "platforms": [
+                "android_webview"
+            ],
+            "experiments": [
+                {
+                    "name": "RaisedLimitsWithFeatureAccess_20261112",
+                    "params": {
+                        "histogram_denylist": "\"\"",
+                        "log_bytes_trim_threshold": "3145728",
+                        "max_ongoing_log_size_bytes": "1048576"
+                    },
+                    "enable_features": [
+                        "AwMetricsLogTrimming",
+                        "HistogramDenylist",
+                        "MetricsLogTrimming"
+                    ]
+                }
+            ]
+        }
+    ],
     "MetricsLogTrimmingLimitsMobile": [
         {
             "platforms": [
@@ -12964,26 +12967,6 @@
                         "max_ongoing_log_size_bytes": "1048576"
                     },
                     "enable_features": [
-                        "MetricsLogTrimming"
-                    ]
-                }
-            ]
-        }
-    ],
-    "MetricsLogTrimmingLimitsWebView": [
-        {
-            "platforms": [
-                "android_webview"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_20260901",
-                    "params": {
-                        "log_bytes_trim_threshold": "3145728",
-                        "max_ongoing_log_size_bytes": "1048576"
-                    },
-                    "enable_features": [
-                        "AwMetricsLogTrimming",
                         "MetricsLogTrimming"
                     ]
                 }
@@ -16954,6 +16937,24 @@
             ]
         }
     ],
+    "ReadAnythingSendFeedback": [
+        {
+            "platforms": [
+                "chromeos",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "Enabled",
+                    "enable_features": [
+                        "ReadAnythingSendFeedback"
+                    ]
+                }
+            ]
+        }
+    ],
     "RealboxVirtualFocusNavigation": [
         {
             "platforms": [
@@ -17377,6 +17378,28 @@
                     "name": "RoundedWindowsEnabled",
                     "enable_features": [
                         "FeatureManagementRoundedWindows"
+                    ]
+                }
+            ]
+        }
+    ],
+    "RustBrotliInNet": [
+        {
+            "platforms": [
+                "android",
+                "android_desktop",
+                "android_webview",
+                "chromeos",
+                "ios",
+                "linux",
+                "mac",
+                "windows"
+            ],
+            "experiments": [
+                {
+                    "name": "RustBrotliInNetExperiment",
+                    "enable_features": [
+                        "RustBrotliInNet"
                     ]
                 }
             ]
@@ -17986,26 +18009,6 @@
                     "name": "Disabled",
                     "disable_features": [
                         "ServeJavaCachedZeroSuggest"
-                    ]
-                }
-            ]
-        }
-    ],
-    "ServiceWorkerDatabaseDoomOnMissingNextId": [
-        {
-            "platforms": [
-                "android",
-                "android_desktop",
-                "chromeos",
-                "linux",
-                "mac",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled_20260901",
-                    "enable_features": [
-                        "ServiceWorkerDatabaseDoomOnMissingNextId"
                     ]
                 }
             ]
@@ -20418,6 +20421,30 @@
             ]
         }
     ],
+    "V8MaglevAsTopTier": [
+        {
+            "platforms": [
+                "android",
+                "android_webview"
+            ],
+            "experiments": [
+                {
+                    "name": "MaglevAsTopTier",
+                    "params": {
+                        "max_maglev_inlined_bytecode_size": "460",
+                        "max_maglev_inlined_bytecode_size_small_total": "30000",
+                        "min_maglev_inlining_frequency": "0.1"
+                    },
+                    "enable_features": [
+                        "V8Flag_maglev"
+                    ],
+                    "disable_features": [
+                        "V8Flag_turbofan"
+                    ]
+                }
+            ]
+        }
+    ],
     "V8MaxValidPolymorphicMapCount": [
         {
             "platforms": [
@@ -20583,7 +20610,6 @@
             "platforms": [
                 "android",
                 "android_desktop",
-                "android_webview",
                 "chromeos",
                 "ios",
                 "linux",
@@ -20953,25 +20979,6 @@
                     "name": "Enabled",
                     "enable_features": [
                         "WebGPUService"
-                    ]
-                }
-            ]
-        }
-    ],
-    "WebGPUSupportMetrics": [
-        {
-            "platforms": [
-                "android",
-                "android_desktop",
-                "android_webview",
-                "linux",
-                "windows"
-            ],
-            "experiments": [
-                {
-                    "name": "Enabled",
-                    "enable_features": [
-                        "CollectWebGPUSupportMetrics"
                     ]
                 }
             ]

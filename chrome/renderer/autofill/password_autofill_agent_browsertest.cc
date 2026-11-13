@@ -4,6 +4,7 @@
 
 #include "components/autofill/content/renderer/password_autofill_agent.h"
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -50,6 +51,7 @@
 #include "content/public/test/browser_test_utils.h"
 #include "mojo/public/cpp/bindings/pending_associated_receiver.h"
 #include "services/service_manager/public/cpp/interface_provider.h"
+#include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest-param-test.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "third_party/blink/public/common/associated_interfaces/associated_interface_provider.h"
@@ -2626,9 +2628,8 @@ TEST_F(PasswordAutofillAgentTest,
   base::RunLoop().RunUntilIdle();
 }
 
-#if BUILDFLAG(ENABLE_DICE_SUPPORT)
-// Users in pending state are shown a suggestion to "verify it's you" even when
-// there are no passwords.
+// Users in signin pending state or with a locked Trusted Vault are shown a
+// promo suggestion even when there are no saved passwords.
 TEST_F(
     PasswordAutofillAgentTest,
     NoPopupOnPasswordFieldWithoutSuggestionsByDefaultWhenNotEligibleForPromo) {
@@ -2639,9 +2640,10 @@ TEST_F(
 
   EXPECT_CALL(fake_autofill_driver_,
               AskForValuesToFill(_, _, _, _, Eq(std::nullopt)))
-      .Times(1);
+      .Times(NumShowSuggestionsCalls());
 
   ASSERT_TRUE(SimulateElementClick(kPasswordName));
+  base::RunLoop().RunUntilIdle();
 }
 
 TEST_F(PasswordAutofillAgentTest,
@@ -2652,11 +2654,25 @@ TEST_F(PasswordAutofillAgentTest,
   password_autofill_agent_->InformNoSavedCredentials(
       /*should_show_popup_without_passwords=*/true);
 
-  EXPECT_CALL(fake_autofill_driver_, AskForValuesToFill)
+  EXPECT_CALL(fake_autofill_driver_,
+              AskForValuesToFill(_, _, _, _, Optional(_)))
       .Times(NumShowSuggestionsCalls());
   ASSERT_TRUE(SimulateElementClick(kPasswordName));
+  base::RunLoop().RunUntilIdle();
+  testing::Mock::VerifyAndClearExpectations(&fake_autofill_driver_);
+
+  // Navigating to a new document triggers `CleanupOnDocumentShutdown()`, which
+  // resets `should_show_popup_without_passwords_` back to false.
+  LoadHTML(kFormHTML);
+  UpdateUsernameAndPasswordElements();
+  ClearUsernameAndPasswordFieldValues();
+
+  EXPECT_CALL(fake_autofill_driver_,
+              AskForValuesToFill(_, _, _, _, Eq(std::nullopt)))
+      .Times(NumShowSuggestionsCalls());
+  ASSERT_TRUE(SimulateElementClick(kPasswordName));
+  base::RunLoop().RunUntilIdle();
 }
-#endif  // BUILDFLAG(ENABLE_DICE_SUPPORT)
 
 // Tests the autosuggestions that are given when the element is clicked.
 // Specifically, tests when the user clicks on the username element after page

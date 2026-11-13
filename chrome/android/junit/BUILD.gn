@@ -1103,6 +1103,7 @@ if (is_android) {
       "src/org/chromium/chrome/browser/omaha/UpdateMenuItemHelperTest.java",
       "src/org/chromium/chrome/browser/omaha/VersionNumberTest.java",
       "src/org/chromium/chrome/browser/omaha/inline/InAppUpdateControllerTest.java",
+      "src/org/chromium/chrome/browser/omaha/inline/InAppUpdateInstallerTest.java",
       "src/org/chromium/chrome/browser/omaha/inline/InAppUpdatePolicyTest.java",
       "src/org/chromium/chrome/browser/omaha/metrics/UpdateSuccessMetricsTest.java",
     ]
@@ -1840,7 +1841,6 @@ if (is_android) {
       "src/org/chromium/chrome/browser/payments/PaymentErrorStringsTest.java",
       "src/org/chromium/chrome/browser/payments/handler/PaymentHandlerCoordinatorUnitTest.java",
       "src/org/chromium/chrome/browser/payments/handler/PaymentHandlerMediatorUnitTest.java",
-      "src/org/chromium/chrome/browser/payments/handler/PaymentHandlerViewUnitTest.java",
       "src/org/chromium/chrome/browser/payments/ui/PaymentAppComparatorUnitTest.java",
       "src/org/chromium/chrome/browser/payments/ui/PaymentUiServiceTest.java",
       "src/org/chromium/chrome/browser/pdf/PdfFragmentViewTrackerImplUnitTest.java",

@@ -4403,6 +4403,13 @@ inline constexpr char kRendererSideContentDecodingDescription[] =
     "network service sends compressed HTTP response bodies to the renderer "
     "process.";
 
+inline constexpr char kRustBrotliInNetName[] =
+    "Rust-based brotli decoding in the network stack";
+inline constexpr char kRustBrotliInNetDescription[] =
+    "When enabled, decodes brotli with the Rust `brotli-decompressor` crate "
+    "instead of the C brotli library. This covers the br content encoding "
+    "(also with a shared dictionary) and TLS certificate compression.";
+
 inline constexpr char kRustyIcoName[] = "Rust-based ICO image handling";
 inline constexpr char kRustyIcoDescription[] =
     "When enabled, uses Rust `image` crate to decode ICO images.";
@@ -4906,12 +4913,6 @@ inline constexpr char kUndoMigrationOfSyncingUserToSignedInName[] =
 inline constexpr char kUndoMigrationOfSyncingUserToSignedInDescription[] =
     "When enabled, reverts the migration of syncing users who were previously "
     "migrated to the signed-in, non-syncing state.";
-
-inline constexpr char kUnifyWaitForCookiesName[] =
-    "Unify wait for cookies for Desktop Android Extensions";
-inline constexpr char kUnifyWaitForCookiesDescription[] =
-    "Unifies the logic to wait for cookies after sign-in for Desktop "
-    "Android Extensions.";
 
 inline constexpr char kNotificationOneTapUnsubscribeOnDesktopName[] =
     "Notification one-tap unsubscribe on Desktop";

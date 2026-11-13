@@ -2907,8 +2907,8 @@ TEST_F(ComposeboxInputPlateMediatorTest,
 
 // Tests that in Co-browse mode, after sending a follow-up query (which promotes
 // the auto-added initial page in the active tab) and navigating the same tab to
-// a new URL, focusing the omnibox auto-attaches the new page while preserving
-// the promoted initial page in Shared tabs.
+// a new URL, the stale initial page is immediately removed from Shared tabs and
+// focusing the omnibox auto-attaches only the new page.
 TEST_F(ComposeboxInputPlateMediatorTest,
        CobrowseAutoAttachesNewPageAfterSameTabNavigationAndFollowup) {
   SetAIMEligible(true);
@@ -2966,24 +2966,12 @@ TEST_F(ComposeboxInputPlateMediatorTest,
   active_web_state->OnNavigationFinished(&nav_context);
   active_web_state->OnPageLoaded(web::PageLoadCompletionStatus::SUCCESS);
 
-  // While unfocused, Page B is not auto-added yet, and Page A remains.
-  ASSERT_EQ(consumer.items.count, 1U);
-  EXPECT_EQ(consumer.items[0].tabURL, page_a_url);
+  // While unfocused, stale Page A is removed immediately and Page B is not
+  // auto-added yet.
+  EXPECT_EQ(consumer.items.count, 0U);
+  EXPECT_EQ(mediator.currentUIInputState.sharedTabs.count, 0U);
 
-  // 4. Focus the omnibox again: Page B must be auto-attached alongside Page A.
-  [mediator setOmniboxFocused:YES];
-  ASSERT_EQ(consumer.items.count, 2U);
-  EXPECT_EQ(consumer.items[0].tabURL, page_a_url);
-  EXPECT_FALSE(consumer.items[0].isAutoAdded);
-  EXPECT_EQ(consumer.items[1].tabURL, page_b_url);
-  EXPECT_TRUE(consumer.items[1].isAutoAdded);
-  EXPECT_EQ(mediator.currentUIInputState.sharedTabs.count, 2U);
-
-  // 5. Remove historical Page A from Shared tabs, then unfocus and refocus the
-  // omnibox: Page B must still auto-attach and remain in Shared tabs.
-  [mediator
-      removeSharedTabWithInputItemIdentifier:consumer.items[0].identifier];
-  [mediator setOmniboxFocused:NO];
+  // 4. Focus the omnibox again: only Page B is auto-attached.
   [mediator setOmniboxFocused:YES];
   ASSERT_EQ(consumer.items.count, 1U);
   EXPECT_EQ(consumer.items[0].tabURL, page_b_url);
@@ -2992,13 +2980,11 @@ TEST_F(ComposeboxInputPlateMediatorTest,
   EXPECT_EQ(mediator.currentUIInputState.sharedTabs[0].URL, page_b_url);
 }
 
-// Tests that when the same tab has both a promoted earlier page (Page A) and a
-// newly attached current page (Page B), deselecting the tab in the Tab Picker
-// removes only the current page (Page B) and preserves Page A, and removing the
-// historical Page A does not block the current page of the tab from
-// auto-attaching.
+// Tests that when an attached tab navigates from Page A to Page B, Page A is
+// replaced by Page B on focus, and deselecting the tab in the Tab Picker leaves
+// zero shared tabs.
 TEST_F(ComposeboxInputPlateMediatorTest,
-       TabPickerDeselectAfterSameTabNavigationKeepsPromotedPage) {
+       TabPickerDeselectAfterSameTabNavigationRemovesCurrentPage) {
   SetAIMEligible(true);
   SetDSEGoogle(true);
   StubPageContextExtraction();
@@ -3047,27 +3033,335 @@ TEST_F(ComposeboxInputPlateMediatorTest,
   nav_context.SetIsSameDocument(false);
   active_web_state->OnNavigationFinished(&nav_context);
   [mediator setOmniboxFocused:YES];
-  ASSERT_EQ(consumer.items.count, 2U);
-
-  // Deselecting the tab in the Tab Picker removes Page B (the tab's current
-  // page) but keeps historical Page A.
-  [mediator attachTabSelection:ComposeboxTabSelection{}];
-  ASSERT_EQ(consumer.items.count, 1U);
-  EXPECT_EQ(consumer.items[0].tabURL, page_a_url);
-  EXPECT_TRUE([mediator isWebStateIDRemovedByUser:active_id]);
-
-  // Re-attach Page B via the Tab Picker, then explicitly remove historical
-  // Page A (`consumer.items[0]`). Removing historical Page A must not mark
-  // `active_id` as removed since the tab is currently on Page B.
-  [mediator
-      attachTabSelection:ComposeboxTabSelection{.selected_ids = {active_id}}];
-  ASSERT_EQ(consumer.items.count, 2U);
-  EXPECT_FALSE([mediator isWebStateIDRemovedByUser:active_id]);
-
-  [mediator removeItem:consumer.items[0]];
   ASSERT_EQ(consumer.items.count, 1U);
   EXPECT_EQ(consumer.items[0].tabURL, page_b_url);
-  EXPECT_FALSE([mediator isWebStateIDRemovedByUser:active_id]);
+
+  // Deselecting the tab in the Tab Picker removes Page B, leaving zero items.
+  [mediator attachTabSelection:ComposeboxTabSelection{}];
+  EXPECT_EQ(consumer.items.count, 0U);
+  EXPECT_EQ(mediator.currentUIInputState.sharedTabs.count, 0U);
+  EXPECT_TRUE([mediator isWebStateIDRemovedByUser:active_id]);
+}
+
+// Tests that navigating an attached Cobrowse tab to an ineligible URL (such as
+// the New Tab Page) removes the promoted page from Shared tabs, does not attach
+// the NTP, and notifies `OnTabClosedOrNavigated` rather than `DeleteFile`.
+TEST_F(ComposeboxInputPlateMediatorTest,
+       CobrowseNavigationToIneligibleURLRemovesPromotedPageAndExpiresContext) {
+  SetAIMEligible(true);
+  SetDSEGoogle(true);
+
+  auto mock_session =
+      std::make_unique<testing::NiceMock<TestContextualSearchSessionHandle>>();
+  TestContextualSearchSessionHandle* raw_mock_session = mock_session.get();
+  testing::NiceMock<contextual_search::MockContextualSearchContextController>
+      mock_controller;
+  ON_CALL(*raw_mock_session, GetController())
+      .WillByDefault(testing::Return(&mock_controller));
+
+  ComposeboxInputPlateMediator* mediator =
+      CreateMediator(std::move(mock_session));
+  TestComposeboxInputPlateConsumer* consumer =
+      [[TestComposeboxInputPlateConsumer alloc] init];
+  mediator.consumer = consumer;
+
+  base::ScopedClosureRunner disconnect_runner(base::BindOnce(^{
+    [mediator disconnect];
+  }));
+
+  web::FakeWebState* active_web_state =
+      static_cast<web::FakeWebState*>(web_state_list_->GetActiveWebState());
+  ASSERT_TRUE(active_web_state);
+  web::WebStateID active_id = active_web_state->GetUniqueIdentifier();
+  const GURL page_1_url("https://www.example.com/page1");
+  active_web_state->SetVisibleURL(page_1_url);
+  active_web_state->SetTitle(u"Page 1");
+  active_web_state->SetContentIsHTML(true);
+  active_web_state->SetContentsMimeType("text/html");
+
+  [mediator createInputItemForWebState:active_web_state
+                                source:ComposeboxInputItemSource::kCurrentTab];
+  ASSERT_EQ(consumer.items.count, 1U);
+  consumer.items[0].serverToken = base::UnguessableToken::Create();
+  consumer.items[0].isAutoAdded = NO;
+  [mediator setState:ComposeboxInputItemState::kLoaded
+              onItem:consumer.items[0]];
+  ASSERT_EQ(mediator.currentUIInputState.sharedTabs.count, 1U);
+
+  EXPECT_CALL(
+      *raw_mock_session,
+      OnTabClosedOrNavigated(active_id.ToSessionID(),
+                             std::optional<GURL>(GURL("chrome://newtab/")),
+                             std::optional<std::string>("New Tab")))
+      .Times(1);
+  EXPECT_CALL(*raw_mock_session, DeleteFile(testing::_)).Times(0);
+
+  // Navigate the tab to an ineligible NTP URL.
+  active_web_state->SetVisibleURL(GURL("chrome://newtab/"));
+  active_web_state->SetTitle(u"New Tab");
+  web::FakeNavigationContext nav_context;
+  nav_context.SetHasCommitted(true);
+  nav_context.SetIsSameDocument(false);
+  active_web_state->OnNavigationFinished(&nav_context);
+
+  EXPECT_EQ(consumer.items.count, 0U);
+  EXPECT_EQ(mediator.currentUIInputState.sharedTabs.count, 0U);
+
+  // Focusing on the NTP must not auto-attach the ineligible page.
+  [mediator setOmniboxFocused:YES];
+  EXPECT_EQ(consumer.items.count, 0U);
+  EXPECT_EQ(mediator.currentUIInputState.sharedTabs.count, 0U);
+}
+
+// Tests that a same-document `#fragment` navigation keeps the existing page in
+// Shared tabs and does not attach a duplicate item when refocusing.
+TEST_F(ComposeboxInputPlateMediatorTest,
+       CobrowseSameDocumentFragmentNavigationKeepsPromotedPage) {
+  SetAIMEligible(true);
+  SetDSEGoogle(true);
+  StubPageContextExtraction();
+
+  auto mock_session =
+      std::make_unique<testing::NiceMock<TestContextualSearchSessionHandle>>();
+  TestContextualSearchSessionHandle* raw_mock_session = mock_session.get();
+  testing::NiceMock<contextual_search::MockContextualSearchContextController>
+      mock_controller;
+  ON_CALL(*raw_mock_session, GetController())
+      .WillByDefault(testing::Return(&mock_controller));
+
+  ComposeboxInputPlateMediator* mediator =
+      CreateMediator(std::move(mock_session));
+  TestComposeboxInputPlateConsumer* consumer =
+      [[TestComposeboxInputPlateConsumer alloc] init];
+  mediator.consumer = consumer;
+
+  base::ScopedClosureRunner disconnect_runner(base::BindOnce(^{
+    [mediator disconnect];
+  }));
+
+  web::FakeWebState* active_web_state =
+      static_cast<web::FakeWebState*>(web_state_list_->GetActiveWebState());
+  ASSERT_TRUE(active_web_state);
+  const GURL page_1_url("https://www.example.com/page1");
+  const GURL page_1_fragment_url("https://www.example.com/page1#section2");
+  active_web_state->SetVisibleURL(page_1_url);
+  active_web_state->SetTitle(u"Page 1");
+  active_web_state->SetContentIsHTML(true);
+  active_web_state->SetContentsMimeType("text/html");
+
+  [mediator setOmniboxFocused:YES];
+  ASSERT_EQ(consumer.items.count, 1U);
+  base::UnguessableToken original_identifier = consumer.items[0].identifier;
+  [mediator sendText:@"Summarize Page 1"];
+  [mediator setOmniboxFocused:NO];
+
+  // Commit a same-document `#fragment` navigation.
+  active_web_state->SetVisibleURL(page_1_fragment_url);
+  web::FakeNavigationContext fragment_nav;
+  fragment_nav.SetHasCommitted(true);
+  fragment_nav.SetIsSameDocument(true);
+  active_web_state->OnNavigationFinished(&fragment_nav);
+
+  ASSERT_EQ(consumer.items.count, 1U);
+  EXPECT_EQ(consumer.items[0].identifier, original_identifier);
+  EXPECT_EQ(mediator.currentUIInputState.sharedTabs.count, 1U);
+
+  // Refocusing must recognize the `#fragment` URL as equivalent and not attach
+  // a duplicate item.
+  [mediator setOmniboxFocused:YES];
+  ASSERT_EQ(consumer.items.count, 1U);
+  EXPECT_EQ(consumer.items[0].identifier, original_identifier);
+  EXPECT_EQ(mediator.currentUIInputState.sharedTabs.count, 1U);
+}
+
+// Tests that reloading the same URL (`IsSameDocument() == false` with an
+// equivalent URL) preserves the existing item in Shared tabs.
+TEST_F(ComposeboxInputPlateMediatorTest,
+       CobrowseSameURLReloadPreservesPromotedPage) {
+  SetAIMEligible(true);
+  SetDSEGoogle(true);
+  StubPageContextExtraction();
+
+  auto mock_session =
+      std::make_unique<testing::NiceMock<TestContextualSearchSessionHandle>>();
+  TestContextualSearchSessionHandle* raw_mock_session = mock_session.get();
+  testing::NiceMock<contextual_search::MockContextualSearchContextController>
+      mock_controller;
+  ON_CALL(*raw_mock_session, GetController())
+      .WillByDefault(testing::Return(&mock_controller));
+
+  ComposeboxInputPlateMediator* mediator =
+      CreateMediator(std::move(mock_session));
+  TestComposeboxInputPlateConsumer* consumer =
+      [[TestComposeboxInputPlateConsumer alloc] init];
+  mediator.consumer = consumer;
+
+  base::ScopedClosureRunner disconnect_runner(base::BindOnce(^{
+    [mediator disconnect];
+  }));
+
+  web::FakeWebState* active_web_state =
+      static_cast<web::FakeWebState*>(web_state_list_->GetActiveWebState());
+  ASSERT_TRUE(active_web_state);
+  const GURL page_1_url("https://www.example.com/page1");
+  active_web_state->SetVisibleURL(page_1_url);
+  active_web_state->SetTitle(u"Page 1");
+  active_web_state->SetContentIsHTML(true);
+  active_web_state->SetContentsMimeType("text/html");
+
+  [mediator setOmniboxFocused:YES];
+  ASSERT_EQ(consumer.items.count, 1U);
+  base::UnguessableToken original_identifier = consumer.items[0].identifier;
+  [mediator sendText:@"Summarize Page 1"];
+  [mediator setOmniboxFocused:NO];
+
+  // Reload the same URL (committed cross-document navigation to `page_1_url`).
+  web::FakeNavigationContext reload_nav;
+  reload_nav.SetHasCommitted(true);
+  reload_nav.SetIsSameDocument(false);
+  active_web_state->OnNavigationFinished(&reload_nav);
+
+  ASSERT_EQ(consumer.items.count, 1U);
+  EXPECT_EQ(consumer.items[0].identifier, original_identifier);
+  EXPECT_EQ(mediator.currentUIInputState.sharedTabs.count, 1U);
+}
+
+// Tests that when a background attached tab commits a cross-document
+// navigation to a new URL in Cobrowse mode, its stale page is removed and
+// notifies `OnTabClosedOrNavigated` without auto-attaching its new URL, while
+// the active tab stays attached.
+TEST_F(ComposeboxInputPlateMediatorTest,
+       BackgroundAttachedTabNavigationRemovesStaleItemWithoutAutoAttaching) {
+  SetAIMEligible(true);
+  SetDSEGoogle(true);
+
+  auto mock_session =
+      std::make_unique<testing::NiceMock<TestContextualSearchSessionHandle>>();
+  TestContextualSearchSessionHandle* raw_mock_session = mock_session.get();
+  testing::NiceMock<contextual_search::MockContextualSearchContextController>
+      mock_controller;
+  ON_CALL(*raw_mock_session, GetController())
+      .WillByDefault(testing::Return(&mock_controller));
+
+  ComposeboxInputPlateMediator* mediator =
+      CreateMediator(std::move(mock_session));
+  TestComposeboxInputPlateConsumer* consumer =
+      [[TestComposeboxInputPlateConsumer alloc] init];
+  mediator.consumer = consumer;
+
+  base::ScopedClosureRunner disconnect_runner(base::BindOnce(^{
+    [mediator disconnect];
+  }));
+
+  web::FakeWebState* active_tab =
+      static_cast<web::FakeWebState*>(web_state_list_->GetActiveWebState());
+  ASSERT_TRUE(active_tab);
+  const GURL tab_a_url("https://www.example.com/a1");
+  active_tab->SetVisibleURL(tab_a_url);
+  active_tab->SetTitle(u"Tab A1");
+  active_tab->SetContentIsHTML(true);
+  active_tab->SetContentsMimeType("text/html");
+
+  web::FakeWebState* background_tab = InsertBackgroundWebState();
+  ASSERT_TRUE(background_tab);
+  web::WebStateID background_id = background_tab->GetUniqueIdentifier();
+  const GURL tab_b1_url("https://www.example.com/b1");
+  const GURL tab_b2_url("https://www.example.com/b2");
+  background_tab->SetVisibleURL(tab_b1_url);
+  background_tab->SetTitle(u"Tab B1");
+  background_tab->SetContentIsHTML(true);
+  background_tab->SetContentsMimeType("text/html");
+
+  // Attach active Tab A (`A1`) and background Tab B (`B1`).
+  [mediator createInputItemForWebState:active_tab
+                                source:ComposeboxInputItemSource::kCurrentTab];
+  base::UnguessableToken active_server_token = base::UnguessableToken::Create();
+  consumer.items[0].serverToken = active_server_token;
+  consumer.items[0].isAutoAdded = NO;
+  [mediator setState:ComposeboxInputItemState::kLoaded
+              onItem:consumer.items[0]];
+
+  [mediator createInputItemForWebState:background_tab
+                                source:ComposeboxInputItemSource::kTabPicker];
+  consumer.items[1].serverToken = base::UnguessableToken::Create();
+  consumer.items[1].isAutoAdded = NO;
+  [mediator setState:ComposeboxInputItemState::kLoaded
+              onItem:consumer.items[1]];
+
+  [mediator setOmniboxFocused:YES];
+  ASSERT_EQ(consumer.items.count, 2U);
+  ASSERT_EQ(mediator.currentUIInputState.sharedTabs.count, 2U);
+
+  EXPECT_CALL(*raw_mock_session,
+              OnTabClosedOrNavigated(background_id.ToSessionID(),
+                                     std::optional<GURL>(tab_b2_url),
+                                     std::optional<std::string>("Tab B2")))
+      .Times(1);
+  EXPECT_CALL(*raw_mock_session, DeleteFile(testing::_)).Times(0);
+
+  // Background Tab B commits a cross-document navigation to `B2`.
+  background_tab->SetVisibleURL(tab_b2_url);
+  background_tab->SetTitle(u"Tab B2");
+  web::FakeNavigationContext nav_context;
+  nav_context.SetHasCommitted(true);
+  nav_context.SetIsSameDocument(false);
+  background_tab->OnNavigationFinished(&nav_context);
+  background_tab->OnPageLoaded(web::PageLoadCompletionStatus::SUCCESS);
+
+  // `B1` is removed, `B2` is not auto-attached, and `A1` remains.
+  ASSERT_EQ(consumer.items.count, 1U);
+  EXPECT_EQ(consumer.items[0].tabURL, tab_a_url);
+  EXPECT_EQ(consumer.items[0].serverToken, active_server_token);
+  ASSERT_EQ(mediator.currentUIInputState.sharedTabs.count, 1U);
+  EXPECT_EQ(mediator.currentUIInputState.sharedTabs[0].URL, tab_a_url);
+}
+
+// Tests that an unrelated background tab finishing page load does not churn the
+// active tab's auto-added item while the omnibox is focused.
+TEST_F(ComposeboxInputPlateMediatorTest,
+       BackgroundTabFinishLoadingDoesNotChurnActiveAutoAddedTab) {
+  SetAIMEligible(true);
+  SetDSEGoogle(true);
+  StubPageContextExtraction();
+
+  auto mock_session =
+      std::make_unique<testing::NiceMock<TestContextualSearchSessionHandle>>();
+  TestContextualSearchSessionHandle* raw_mock_session = mock_session.get();
+  testing::NiceMock<contextual_search::MockContextualSearchContextController>
+      mock_controller;
+  ON_CALL(*raw_mock_session, GetController())
+      .WillByDefault(testing::Return(&mock_controller));
+
+  ComposeboxInputPlateMediator* mediator =
+      CreateMediator(std::move(mock_session));
+  TestComposeboxInputPlateConsumer* consumer =
+      [[TestComposeboxInputPlateConsumer alloc] init];
+  mediator.consumer = consumer;
+
+  base::ScopedClosureRunner disconnect_runner(base::BindOnce(^{
+    [mediator disconnect];
+  }));
+
+  web::FakeWebState* active_tab =
+      static_cast<web::FakeWebState*>(web_state_list_->GetActiveWebState());
+  ASSERT_TRUE(active_tab);
+  PrepareForAutoAttachment(active_tab);
+
+  web::FakeWebState* background_tab = InsertBackgroundWebState();
+  ASSERT_TRUE(background_tab);
+  PrepareForAutoAttachment(background_tab);
+
+  [mediator setOmniboxFocused:YES];
+  ASSERT_EQ(consumer.items.count, 1U);
+  ASSERT_TRUE(consumer.items[0].isAutoAdded);
+  base::UnguessableToken active_item_identifier = consumer.items[0].identifier;
+
+  // Unrelated background tab finishes loading; active tab's auto-added item
+  // must not be removed and re-created with a new identifier.
+  background_tab->OnPageLoaded(web::PageLoadCompletionStatus::SUCCESS);
+  ASSERT_EQ(consumer.items.count, 1U);
+  EXPECT_TRUE(consumer.items[0].isAutoAdded);
+  EXPECT_EQ(consumer.items[0].identifier, active_item_identifier);
 }
 
 // Tests that `didCreateSearchURL:` in AIM mode with the active tab attached

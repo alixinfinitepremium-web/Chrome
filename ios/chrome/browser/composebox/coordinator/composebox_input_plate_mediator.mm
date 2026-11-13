@@ -97,6 +97,7 @@
 #import "ios/chrome/browser/shared/model/url/url_util.h"
 #import "ios/chrome/browser/shared/model/utils/mime_type_util.h"
 #import "ios/chrome/browser/shared/model/utils/web_state_deferred_executor.h"
+#import "ios/chrome/browser/shared/model/web_state_list/all_web_state_observation_forwarder.h"
 #import "ios/chrome/browser/shared/model/web_state_list/web_state_list.h"
 #import "ios/chrome/browser/shared/model/web_state_list/web_state_list_observer_bridge.h"
 #import "ios/chrome/browser/shared/public/commands/browser_coordinator_commands.h"
@@ -253,10 +254,10 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
   raw_ptr<WebStateList> _webStateList;
   // The observer bridge for the WebStateList.
   std::unique_ptr<WebStateListObserverBridge> _webStateListObserver;
-  // The observer bridge for the active WebState.
-  std::unique_ptr<web::WebStateObserverBridge> _activeWebStateObserverBridge;
-  // The currently observed active WebState.
-  raw_ptr<web::WebState> _activeWebState;
+  // The observer bridge and forwarder for all WebStates in `_webStateList`.
+  std::unique_ptr<web::WebStateObserverBridge> _webStateObserverBridge;
+  std::unique_ptr<AllWebStateObservationForwarder>
+      _allWebStateObservationForwarder;
   // The favicon loader.
   raw_ptr<FaviconLoader> _faviconLoader;
   // A browser agent for retrieving APC from the cache.
@@ -423,7 +424,11 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
       _webStateListObserver =
           std::make_unique<WebStateListObserverBridge>(self);
       _webStateList->AddObserver(_webStateListObserver.get());
-      [self updateActiveWebStateObserver];
+      _webStateObserverBridge =
+          std::make_unique<web::WebStateObserverBridge>(self);
+      _allWebStateObservationForwarder =
+          std::make_unique<AllWebStateObservationForwarder>(
+              _webStateList.get(), _webStateObserverBridge.get());
     }
     _faviconLoader = faviconLoader;
     _webStateDeferredExecutor = [[WebStateDeferredExecutor alloc] init];
@@ -501,12 +506,13 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
     _contextualSearchSession.reset();
   }
   _inNavigation = NO;
+  _allWebStateObservationForwarder.reset();
+  _webStateObserverBridge.reset();
   if (_webStateList && _webStateListObserver) {
     _webStateList->RemoveObserver(_webStateListObserver.get());
     _webStateListObserver.reset();
   }
   _webStateList = nullptr;
-  [self stopObservingActiveWebState];
   _items = nil;
   _latestTabSelectionMapping.clear();
   _userRemovedWebStateIDs.clear();
@@ -592,7 +598,7 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
         // item. If the tab navigated to a new URL, it should not appear as
         // already selected in the tab picker.
         if (it != _latestTabSelectionMapping.end() &&
-            [self isItem:item matchingCurrentURLOfWebStateID:it->second]) {
+            [self isItem:item equivalentToCurrentURLOfWebStateID:it->second]) {
           tabIDs.insert(it->second);
         }
         break;
@@ -772,7 +778,7 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
   std::set<web::WebStateID> webStateIDs;
   for (ComposeboxInputItem* item in _items.containedItems) {
     web::WebStateID webStateID = _latestTabSelectionMapping[item.identifier];
-    if ([self isItem:item matchingCurrentURLOfWebStateID:webStateID]) {
+    if ([self isItem:item equivalentToCurrentURLOfWebStateID:webStateID]) {
       webStateIDs.insert(webStateID);
     }
   }
@@ -801,7 +807,7 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
       [self.assistantMetricsRecorder recordAutoAddedTabRemoved];
     }
     web::WebStateID webStateID = _latestTabSelectionMapping[item.identifier];
-    if ([self isItem:item matchingCurrentURLOfWebStateID:webStateID]) {
+    if ([self isItem:item equivalentToCurrentURLOfWebStateID:webStateID]) {
       _userRemovedWebStateIDs.insert(webStateID);
     }
   }
@@ -1210,10 +1216,11 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
   [self notifyContextChanged];
 }
 
-// Returns whether `item` represents the current visible URL of the WebState
-// matching `webStateID` in `_webStateList`.
+// Returns whether `item`'s URL is equivalent to the current visible URL of the
+// WebState matching `webStateID` in `_webStateList` (for example, ignoring URL
+// fragments).
 - (BOOL)isItem:(ComposeboxInputItem*)item
-    matchingCurrentURLOfWebStateID:(web::WebStateID)webStateID {
+    equivalentToCurrentURLOfWebStateID:(web::WebStateID)webStateID {
   if (!item || !webStateID.valid() || !_webStateList) {
     return NO;
   }
@@ -1226,7 +1233,16 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
     return NO;
   }
   web::WebState* webState = _webStateList->GetWebStateAt(index);
-  return webState && item.tabURL == webState->GetVisibleURL();
+  if (!webState) {
+    return NO;
+  }
+  const GURL& currentURL = webState->GetVisibleURL();
+  if (_contextualSearchSession) {
+    return _contextualSearchSession->AreUrlsEquivalent(
+        item.tabURL, base::SysNSStringToUTF8(item.title), currentURL,
+        base::UTF16ToUTF8(webState->GetTitle()));
+  }
+  return item.tabURL.GetWithoutRef() == currentURL.GetWithoutRef();
 }
 
 // Removes input items matching the deselected WebState IDs.
@@ -1242,7 +1258,7 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
     if (!deselectedIDs.contains(webStateID)) {
       continue;
     }
-    if (![self isItem:item matchingCurrentURLOfWebStateID:webStateID]) {
+    if (![self isItem:item equivalentToCurrentURLOfWebStateID:webStateID]) {
       continue;
     }
     [self removeItem:item];
@@ -1257,6 +1273,8 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
   }
   web::WebStateID detachedID = detachedWebState->GetUniqueIdentifier();
   _userRemovedWebStateIDs.erase(detachedID);
+  // Pass `std::nullopt` for `current_url` so the session treats this as a tab
+  // closure rather than a same-URL navigation.
   if (_contextualSearchSession && detachedID.valid()) {
     _contextualSearchSession->OnTabClosedOrNavigated(
         detachedID.ToSessionID(), /*current_url=*/std::nullopt,
@@ -1264,6 +1282,37 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
   }
   for (ComposeboxInputItem* item in [_items.containedItems copy]) {
     if (_latestTabSelectionMapping[item.identifier] == detachedID) {
+      item.serverToken = base::UnguessableToken();
+      [self removeItemFromUI:item];
+    }
+  }
+}
+
+// Notifies `_contextualSearchSession` and removes stale items associated with
+// `webState` after a committed cross-document navigation.
+- (void)handleNavigatedWebState:(web::WebState*)webState {
+  if (!webState) {
+    return;
+  }
+  web::WebStateID webStateID = webState->GetUniqueIdentifier();
+  _userRemovedWebStateIDs.erase(webStateID);
+  // Pass `webState->GetVisibleURL()` (non-`std::nullopt`) so the session treats
+  // this as a navigation, expiring prior non-equivalent URLs while retaining
+  // equivalent ones.
+  if (_contextualSearchSession && webStateID.valid()) {
+    _contextualSearchSession->OnTabClosedOrNavigated(
+        webStateID.ToSessionID(), webState->GetVisibleURL(),
+        base::UTF16ToUTF8(webState->GetTitle()));
+  }
+  // Keep items whose URL is equivalent to `webState`'s new URL, matching
+  // `OnTabClosedOrNavigated()` retaining them in the session and preventing
+  // `-updateAutoAttachedCurrentTab` from adding a duplicate.
+  // TODO(crbug.com/574434041): Drive UI item removal from
+  // `OnTabClosedOrNavigated()` / `TabContextState` instead of mirroring its
+  // URL-equivalence check in the mediator.
+  for (ComposeboxInputItem* item in [_items.containedItems copy]) {
+    if (_latestTabSelectionMapping[item.identifier] == webStateID &&
+        ![self isItem:item equivalentToCurrentURLOfWebStateID:webStateID]) {
       item.serverToken = base::UnguessableToken();
       [self removeItemFromUI:item];
     }
@@ -1640,33 +1689,6 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
     return;
   }
   [self updateAutoAttachedCurrentTab];
-}
-
-// Stops observing the active WebState and resets the observer bridge.
-- (void)stopObservingActiveWebState {
-  if (_activeWebState && _activeWebStateObserverBridge) {
-    _activeWebState->RemoveObserver(_activeWebStateObserverBridge.get());
-    _activeWebStateObserverBridge.reset();
-  }
-  _activeWebState = nullptr;
-}
-
-// Updates active WebState observation to track `_webStateList`'s active
-// WebState. If the active WebState has changed or `_webStateList` is null,
-// unobserves the previous WebState and starts observing the new one if valid.
-- (void)updateActiveWebStateObserver {
-  web::WebState* newActiveWebState =
-      _webStateList ? _webStateList->GetActiveWebState() : nullptr;
-  if (_activeWebState == newActiveWebState) {
-    return;
-  }
-  [self stopObservingActiveWebState];
-  _activeWebState = newActiveWebState;
-  if (_activeWebState) {
-    _activeWebStateObserverBridge =
-        std::make_unique<web::WebStateObserverBridge>(self);
-    _activeWebState->AddObserver(_activeWebStateObserverBridge.get());
-  }
 }
 
 // Returns the WebState in `_webStateList` associated with
@@ -2995,7 +3017,6 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
   }
 
   if (status.active_web_state_change()) {
-    [self updateActiveWebStateObserver];
     [self updateAutoAttachedCurrentTabIfNeeded];
   }
 
@@ -3013,12 +3034,13 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
 
 - (void)webStateListDestroyed:(WebStateList*)webStateList {
   DCHECK_CALLED_ON_VALID_SEQUENCE(_sequenceChecker);
+  _allWebStateObservationForwarder.reset();
+  _webStateObserverBridge.reset();
   if (_webStateList && _webStateListObserver) {
     _webStateList->RemoveObserver(_webStateListObserver.get());
     _webStateListObserver.reset();
   }
   _webStateList = nullptr;
-  [self updateActiveWebStateObserver];
 }
 
 #pragma mark - CRWWebStateObserver
@@ -3030,21 +3052,24 @@ lens::ImageEncodingOptions GetDefaultImageEncodingOptions() {
   }
   if (!navigationContext || (navigationContext->HasCommitted() &&
                              !navigationContext->IsSameDocument())) {
-    _userRemovedWebStateIDs.erase(webState->GetUniqueIdentifier());
+    [self handleNavigatedWebState:webState];
   }
-  [self updateAutoAttachedCurrentTabIfNeeded];
+  if (_webStateList && webState == _webStateList->GetActiveWebState()) {
+    [self updateAutoAttachedCurrentTabIfNeeded];
+  }
 }
 
 - (void)webStateDidStopLoading:(web::WebState*)webState {
   if (_entrypoint != ComposeboxEntrypoint::kCobrowse) {
     return;
   }
-  [self updateAutoAttachedCurrentTabIfNeeded];
+  if (_webStateList && webState == _webStateList->GetActiveWebState()) {
+    [self updateAutoAttachedCurrentTabIfNeeded];
+  }
 }
 
 - (void)webStateDestroyed:(web::WebState*)webState {
   _userRemovedWebStateIDs.erase(webState->GetUniqueIdentifier());
-  [self updateActiveWebStateObserver];
 }
 
 #pragma mark - Testing

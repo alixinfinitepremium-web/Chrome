@@ -13815,12 +13815,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kAutofillEnableWalletGmailOffersDescription, kOsDesktop,
      FEATURE_VALUE_TYPE(autofill::features::kAutofillEnableWalletGmailOffers)},
 
-#if BUILDFLAG(ENABLE_DESKTOP_ANDROID_EXTENSIONS)
-    {"unify-wait-for-cookies", flag_descriptions::kUnifyWaitForCookiesName,
-     flag_descriptions::kUnifyWaitForCookiesDescription, kOsAndroid,
-     FEATURE_VALUE_TYPE(switches::kUnifyWaitForCookies)},
-#endif  // BUILDFLAG(ENABLE_DESKTOP_ANDROID_EXTENSIONS)
-
     {"browsing-history-filter-by-device",
      flag_descriptions::kBrowsingHistoryFilterByDeviceName,
      flag_descriptions::kBrowsingHistoryFilterByDeviceDescription, kOsAll,
@@ -14186,6 +14180,10 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kOmitNativeFrameOnShadowlessMenusDescription,
      kOsDesktop,
      FEATURE_VALUE_TYPE(features::kOmitNativeFrameOnShadowlessMenus)},
+
+    {"rust-brotli-in-net", flag_descriptions::kRustBrotliInNetName,
+     flag_descriptions::kRustBrotliInNetDescription, kOsAll,
+     FEATURE_VALUE_TYPE(net::features::kRustBrotliInNet)},
 
     // Add new entries above this line.
     // NOTE: Adding a new flag requires adding a corresponding entry to enum

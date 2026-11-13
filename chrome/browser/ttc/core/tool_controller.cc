@@ -226,6 +226,20 @@ void ToolController::OnToolCallDone(ToolResponse response) {
   PendingToolCall tool_call = std::move(*in_flight_tool_call_);
   in_flight_tool_call_.reset();
 
+  // Queued calls may depend on a failed call, so they're dropped rather than
+  // run.
+  std::vector<PendingToolCall> aborted_tool_calls;
+  if (!response.Ok()) {
+    for (PendingToolCall& aborted_tool_call : pending_tool_calls_) {
+      session_controller_->GetJournal().Log(
+          "TtcToolCallAborted", actor::JournalDetailsBuilder()
+                                    .Add("name", aborted_tool_call.request.name)
+                                    .Build());
+      aborted_tool_calls.push_back(std::move(aborted_tool_call));
+    }
+    pending_tool_calls_.clear();
+  }
+
   // Start the next tool call asynchronously rather than from within the
   // previous call's completion, which may run synchronously from inside
   // RunToolCall() (e.g. on invalid arguments). This avoids reentrancy and
@@ -237,6 +251,11 @@ void ToolController::OnToolCallDone(ToolResponse response) {
   }
 
   std::move(tool_call.callback).Run(std::move(response));
+  for (PendingToolCall& aborted_tool_call : aborted_tool_calls) {
+    std::move(aborted_tool_call.callback)
+        .Run(ToolResponse::Error(
+            actor::mojom::ActionResultCode::kActionsCancelled));
+  }
 }
 
 void ToolController::RunToolCall(const ToolRequest& tool_request,
@@ -777,25 +796,9 @@ void ToolController::OnGetScreenshotFetched(
   screenshot_fetcher_.reset();
 
   if (!result.has_value()) {
-    auto error = actor::mojom::ActionResultCode::kScreenshotCaptureFailed;
-    switch (result.error().error_code) {
-      case page_content_annotations::FetchPageContextError::
-          kWebContentsWentAway:
-        error = actor::mojom::ActionResultCode::kTabWentAway;
-        break;
-      case page_content_annotations::FetchPageContextError::kWebContentsChanged:
-        error = actor::mojom::ActionResultCode::kScreenshotCapturePageChanged;
-        break;
-      case page_content_annotations::FetchPageContextError::
-          kPageContextNotEligible:
-        error =
-            actor::mojom::ActionResultCode::kScreenshotCapturePageNotEligible;
-        break;
-      default:
-        break;
-    }
-
-    std::move(callback).Run(ToolResponse::Error(error, result.error().message));
+    std::move(callback).Run(
+        ToolResponse::Error(ToScreenshotErrorCode(result.error().error_code),
+                            result.error().message));
     return;
   }
 

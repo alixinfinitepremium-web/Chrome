@@ -399,8 +399,6 @@ public abstract class ChromeFeatureList {
     public static final String ASYNC_NOTIFICATION_MANAGER_FOR_DOWNLOAD =
             "AsyncNotificationManagerForDownload";
     public static final String AUTOFILL_AI_AVAILABLE_BY_DEFAULT = "AutofillAiAvailableByDefault";
-    public static final String AUTOFILL_AI_EDIT_ENTITIES_FROM_SAVE_UPDATE_PROMPT =
-            "AutofillAiEditEntitiesFromSaveUpdatePrompt";
     public static final String AUTOFILL_AI_LIMIT_SUGGESTION_WIDTH =
             "AutofillAiLimitSuggestionWidth";
     public static final String AUTOFILL_AI_ONLINE_MODEL_TOGGLE_NEW_TITLE =
@@ -952,6 +950,8 @@ public abstract class ChromeFeatureList {
     public static final String USE_WEB_UI_NTP_ANDROID = "UseWebUiNtpAndroid";
     public static final String VERIFY_QWACS = "VerifyQWACs";
     public static final String VERIFY_STARTUP_SIGNIN_STATE = "VerifyStartupSigninState";
+    public static final String VIRTUAL_KEYBOARD_LIVE_HEIGHT_ONCE_SETTLED =
+            "VirtualKeyboardLiveHeightOnceSettled";
     public static final String VIRTUAL_KEYBOARD_RESIZES_CONTENT_TRANSIENT_OVERSHOOT_FIX =
             "VirtualKeyboardResizesContentTransientOvershootFix";
     public static final String VIRTUAL_KEYBOARD_TRANSIENT_INNER_HEIGHT_FIX =
@@ -1351,6 +1351,7 @@ public abstract class ChromeFeatureList {
                     HOME_BUTTON_REMOVAL,
                     /* defaultValue= */ false,
                     /* defaultValueInTests= */ true);
+    public static final CachedFlag sInAppUpdateFlow = newCachedFlag(IN_APP_UPDATE_FLOW, false);
     public static final CachedFlag sKeyboardEscBackNavigation =
             newCachedFlag(KEYBOARD_ESC_BACK_NAVIGATION, true);
     public static final CachedFlag sLensBypassCompressionForC2pa =
@@ -1532,6 +1533,8 @@ public abstract class ChromeFeatureList {
                     /* defaultValueInTests= */ BuildConfig.IS_DESKTOP_ANDROID);
     public static final CachedFlag sUseWebUiNtpAndroid =
             newCachedFlag(USE_WEB_UI_NTP_ANDROID, BuildConfig.IS_DESKTOP_ANDROID);
+    public static final CachedFlag sVirtualKeyboardLiveHeightOnceSettled =
+            newCachedFlag(VIRTUAL_KEYBOARD_LIVE_HEIGHT_ONCE_SETTLED, true);
     public static final CachedFlag sVirtualKeyboardResizesContentTransientOvershootFix =
             newCachedFlag(VIRTUAL_KEYBOARD_RESIZES_CONTENT_TRANSIENT_OVERSHOOT_FIX, true);
     public static final CachedFlag sVirtualKeyboardTransientInnerHeightFix =
@@ -1689,6 +1692,7 @@ public abstract class ChromeFeatureList {
                     sGlicBackgroundTriggering,
                     sHistoryPaneAndroid,
                     sHomeButtonRemoval,
+                    sInAppUpdateFlow,
                     sKeyboardEscBackNavigation,
                     sLensBypassCompressionForC2pa,
                     sLensSendRawFileMediaTypes,
@@ -1749,6 +1753,7 @@ public abstract class ChromeFeatureList {
                     sUseWebUiBookmarksAndroid,
                     sUseWebUiNtp3PDSE,
                     sUseWebUiNtpAndroid,
+                    sVirtualKeyboardLiveHeightOnceSettled,
                     sVirtualKeyboardResizesContentTransientOvershootFix,
                     sVirtualKeyboardTransientInnerHeightFix,
                     sWebApkMinShellApkVersion,
@@ -2436,6 +2441,9 @@ public abstract class ChromeFeatureList {
                             "set_default_to_false_on_homepage_on_desktop",
                             true);
 
+    public static final StringCachedFeatureParam sInAppUpdateRestartMode =
+            newStringCachedFeatureParam(IN_APP_UPDATE_FLOW, "restart_mode", "snackbar");
+
     public static final BooleanCachedFeatureParam sMaliciousApkDownloadCheckTelemetryOnly =
             newBooleanCachedFeatureParam(MALICIOUS_APK_DOWNLOAD_CHECK, "telemetry_only", false);
     public static final BooleanCachedFeatureParam sMostVisitedTilesReselectLaxSchemeHost =
@@ -2617,6 +2625,7 @@ public abstract class ChromeFeatureList {
                     sHomeButtonRemovalEverywhere,
                     sHomeButtonRemovalKeepOnNtp,
                     sHomeButtonRemovalSetDefaultToFalseOnHomepageOnDesktop,
+                    sInAppUpdateRestartMode,
                     sLockTopControlsForceAdjustHeightOnStartup,
                     sLowMemoryDeviceThresholdMb,
                     sMaliciousApkDownloadCheckTelemetryOnly,

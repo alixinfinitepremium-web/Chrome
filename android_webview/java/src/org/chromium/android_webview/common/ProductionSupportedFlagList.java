@@ -673,6 +673,7 @@ public final class ProductionSupportedFlagList {
         Flag.baseFeature("V8Flag_intl_date_time_pattern_generator_cache_eviction"),
         Flag.baseFeature("V8Flag_large_page_pool"),
         Flag.baseFeature("V8Flag_late_heap_limit_check"),
+        Flag.baseFeature("V8Flag_maglev"),
         Flag.baseFeature("V8Flag_managed_zone_memory"),
         Flag.baseFeature("V8Flag_minor_gc_task_with_lower_priority"),
         Flag.baseFeature("V8Flag_scavenger_updates_allocation_limit"),
@@ -680,6 +681,7 @@ public final class ProductionSupportedFlagList {
         Flag.baseFeature("V8Flag_memory_reducer"),
         Flag.baseFeature("V8Flag_verify_bytecode_light"),
         Flag.baseFeature("V8Flag_enforce_global_heap_limit"),
+        Flag.baseFeature("V8Flag_turbofan"),
         Flag.baseFeature("V8Flag_turbolev"),
         Flag.baseFeature("V8Flag_sqrt_allocation_limits"),
         Flag.baseFeature("V8Flag_freeze_forces_marking_finalization"),
@@ -1577,6 +1579,11 @@ public final class ProductionSupportedFlagList {
                 BlinkFeatures.PROCESS_HTML_DATA_IMMEDIATELY,
                 "Parses HTML data as soon as it arrives instead of posting a task. Has no"
                         + " effect unless the feature params are set."),
+        Flag.baseFeature(
+                NetFeatures.RUST_BROTLI_IN_NET,
+                "Decodes brotli with the Rust brotli-decompressor crate instead of the C brotli"
+                        + " library. This covers the br content encoding (also with a shared"
+                        + " dictionary) and TLS certificate compression."),
         // Add new commandline switches and features above. The final entry should have a
         // trailing comma for cleaner diffs.
     };

@@ -4362,12 +4362,12 @@
       "guidou@chromium.org",
       "agpalak@chromium.org"
     ],
-    "expiry_milestone": 160
+    "expiry_milestone": 180
   },
   {
     "name": "enable-media-foundation-video-capture",
     "owners": [ "agpalak@chromium.org", "herre@chromium.org", "rtc-meet-in-chrome@google.com" ],
-    "expiry_milestone": 160
+    "expiry_milestone": 180
   },
   {
     "name": "enable-missive-storage-config",
@@ -6517,11 +6517,6 @@
     "name": "ios-provides-app-notification-settings",
     "owners": ["scottyoder@google.com", "bling-pandamonium@google.com"],
     "expiry_milestone": 155
-  },
-  {
-    "name": "ios-save-to-drive-signed-out",
-    "owners": [ "josephlanza@google.com", "qpubert@google.com", "bling-flags@google.com"],
-    "expiry_milestone": 160
   },
   {
     "name": "ios-save-to-photos-signed-out",
@@ -8701,7 +8696,16 @@
   {
     "name": "run-video-capture-service-in-browser",
     "owners": [ "agpalak@chromium.org", "herre@chromium.org", "rtc-meet-in-chrome@google.com" ],
-    "expiry_milestone": 160
+    "expiry_milestone": 180
+  },
+  {
+    "name": "rust-brotli-in-net",
+    "owners": [
+      "miketaylr@google.com",
+      "marcobartoli@microsoft.com",
+      "net-dev@chromium.org"
+    ],
+    "expiry_milestone": 170
   },
   {
     "name": "saas-usage-reporting",
@@ -9735,14 +9739,6 @@
     "name": "unexportable-key-deletion",
     "owners": [ "jdoerrie@chromium.org" ],
     "expiry_milestone": 152
-  },
-  {
-    "name": "unify-wait-for-cookies",
-    "owners": [
-      "samarchehade@google.com",
-      "chrome-signin-mobile-team@google.com"
-    ],
-    "expiry_milestone": 160
   },
   {
     "name": "universal-keyboard-handling",

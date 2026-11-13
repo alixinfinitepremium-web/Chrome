@@ -6987,11 +6987,6 @@
       status: {"Android": "stable"},
     },
     {
-      // crbug.com/556235808
-      name: "TextIteratorExcludeAutofilledSelectFix",
-      status: "stable",
-    },
-    {
       name: "TextMetricsBaselines",
       status: "stable",
     },
@@ -7641,7 +7636,7 @@
     {
       name: "WebBluetoothMaxWriteWithoutResponseSize",
       public: true,
-      status: "experimental",
+      status: "stable",
     },
     {
       name: "WebBluetoothScanning",

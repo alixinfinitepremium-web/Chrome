@@ -21,13 +21,24 @@ namespace sync_sessions {
 
 class OpenTabsUIDelegate {
  public:
-  // Builds a list of foreign sessions with presentable tabs, ordered from most
-  // recent to least recent (unlike `GetAllRawForeignSessions`, excludes
-  // sessions without presentable tabs). Caller does NOT own `SyncedSession`
-  // objects. Returns true if foreign sessions were found, false otherwise.
+  // Controls which foreign sessions are returned by `GetAllForeignSessions()`.
+  enum class ForeignSessionFilter {
+    // Includes only visible presentable foreign sessions (with at least one
+    // syncable tab, and excluding sessions hidden via `SessionSyncPrefs` when
+    // `kDeviceTabVisibilitySettings` is enabled).
+    kPresentable,
+    // Includes all tracked foreign sessions, regardless of whether they have
+    // any presentable tabs or are hidden via `SessionSyncPrefs` (maps to
+    // `SyncedSessionTracker::RAW`).
+    kAll,
+  };
+
+  // Builds a list of foreign sessions matching `filter`, ordered from most
+  // recent to least recent. Caller does NOT own `SyncedSession` objects.
+  // Returns true if foreign sessions were found, false otherwise.
   virtual bool GetAllForeignSessions(
-      std::vector<raw_ptr<const SyncedSession, VectorExperimental>>*
-          sessions) = 0;
+      std::vector<raw_ptr<const SyncedSession, VectorExperimental>>* sessions,
+      ForeignSessionFilter filter) = 0;
 
   // Builds a list of all named foreign sessions (excluding sessions with an
   // empty name), including those without presentable tabs (e.g., 0 tabs or
