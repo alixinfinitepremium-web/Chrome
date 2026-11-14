@@ -278,6 +278,10 @@ void SessionServiceBase::TabInserted(WebContents* contents) {
   if (!ShouldTrackChangesToWindow(session_tab_helper->window_id())) {
     return;
   }
+  if (windows_empty_at_last_rebuild_.erase(session_tab_helper->window_id())) {
+    base::UmaHistogramBoolean(
+        "Session.Counterfactual.EmptyWindowTabWouldHaveBeenLost", true);
+  }
   SetTabWindow(session_tab_helper->window_id(),
                session_tab_helper->session_id());
   std::string app_id = apps::GetAppIdForWebContents(contents);
@@ -451,6 +455,18 @@ void SessionServiceBase::SetSelectedNavigationIndex(SessionID window_id,
       // a reset.
       ResetFromCurrentBrowsers();
       return;
+    }
+    // The old code rewrote the file on a tab's second step past its
+    // rebuild-time bound, which reset every tab's bound.
+    if (index == range.second + 1 &&
+        !tabs_past_rebuild_bound_.insert(tab_id).second) {
+      tabs_past_rebuild_bound_.clear();
+      // A rewrite that is already pending would have absorbed the old one.
+      if (!command_storage_manager_->pending_reset() &&
+          !rebuild_on_next_save_) {
+        base::UmaHistogramBoolean("Session.Counterfactual.FullRewriteAvoided",
+                                  true);
+      }
     }
   }
   ScheduleCommand(
@@ -818,6 +834,8 @@ void SessionServiceBase::BuildCommandsForBrowser(
 void SessionServiceBase::BuildCommandsFromBrowsers(
     IdToRange* tab_to_available_range,
     std::set<SessionID>* windows_to_track) {
+  windows_empty_at_last_rebuild_.clear();
+  tabs_past_rebuild_bound_.clear();
   CHECK(is_saving_enabled_, base::NotFatalUntil::M163);
   // The platform session id is only written once, when the platform session is
   // initialized, so it has to be carried over when the commands are rebuilt.
@@ -833,6 +851,9 @@ void SessionServiceBase::BuildCommandsFromBrowsers(
         // Include browsers with no tabs yet (e.g. a window created for a tab
         // drag) so they stay tracked; restore drops windows that end up empty.
         if (ShouldTrackBrowser(browser) && browser->GetWindow()) {
+          if (browser->GetTabStripModel()->empty()) {
+            windows_empty_at_last_rebuild_.insert(browser->GetSessionID());
+          }
           BuildCommandsForBrowser(browser, tab_to_available_range,
                                   windows_to_track);
         }

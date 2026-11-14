@@ -42,6 +42,10 @@
 #include "pdf/buildflags.h"
 #include "url/gurl.h"
 
+#if BUILDFLAG(IS_ANDROID)
+#include "components/guest_view/common/guest_view_features.h"  // nogncheck
+#endif
+
 namespace glic {
 
 GlicIndigoFeatureParams::GlicIndigoFeatureParams() = default;
@@ -227,6 +231,18 @@ class GeminiGlicProviderSpec final : public GlicProviderSpec {
       case GlicFeature::kPersonalContext:
         return true;
       case GlicFeature::kSkills:
+#if BUILDFLAG(IS_ANDROID)
+        // Android only supports the WebView V2 UI, which relies on <webview>
+        // handling autosize in logical pixels: the host page is generally
+        // zoomed on Android (the OS font scale is folded into the default
+        // zoom).
+        if (!base::FeatureList::IsEnabled(
+                ::features::kSkillsWebViewV2Enabled) ||
+            !base::FeatureList::IsEnabled(
+                guest_view::kGuestViewAutoSizeInLogicalPixels)) {
+          return false;
+        }
+#endif
         return base::FeatureList::IsEnabled(::features::kSkillsEnabled);
       case GlicFeature::kMarketingAutoOpen:
         return base::FeatureList::IsEnabled(features::kGlicMarketingAutoOpen);
@@ -269,6 +285,9 @@ class GeminiGlicProviderSpec final : public GlicProviderSpec {
   }
   bool SupportsSsr() const override {
     return base::FeatureList::IsEnabled(features::kGlicSsr);
+  }
+  bool SupportsApiBundleResource() const override {
+    return base::FeatureList::IsEnabled(features::kGlicApiBundleResource);
   }
   bool PinOnBindEnabled() const override { return true; }
 
@@ -371,6 +390,9 @@ class GeminiEnterpriseGlicProviderSpec final : public GlicProviderSpec {
   // TODO(b/576365433): Enable `kGeicSsr` once the webapp supports it.
   bool SupportsSsr() const override {
     return base::FeatureList::IsEnabled(features::kGeicSsr);
+  }
+  bool SupportsApiBundleResource() const override {
+    return base::FeatureList::IsEnabled(features::kGeicApiBundleResource);
   }
   // GEiC uses explicit single-tab attachment; tabs created via CreateTab or
   // link clicks (e.g. Send feedback, Help, citations) should not be auto-pinned

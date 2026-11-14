@@ -1158,8 +1158,7 @@ void RenderFrameHostManager::DidChangeOpener(
   FrameTreeNode* opener = nullptr;
   if (opener_frame_token) {
     RenderFrameHostImpl* opener_rfhi = RenderFrameHostImpl::FromFrameToken(
-        source_site_instance_group->process()->GetDeprecatedID(),
-        *opener_frame_token);
+        source_site_instance_group->process()->GetID(), *opener_frame_token);
     // If |opener_rfhi| is null, the opener RFH has already disappeared.  In
     // this case, clear the opener rather than keeping the old opener around.
     if (opener_rfhi) {
@@ -6135,21 +6134,20 @@ void RenderFrameHostManager::CreateNewFrameForInnerDelegateAttachIfNecessary() {
 void RenderFrameHostManager::NotifyPrepareForInnerDelegateAttachComplete(
     bool success) {
   CHECK(is_attaching_inner_delegate());
-  int32_t process_id = success
-                           ? render_frame_host_->GetProcess()->GetDeprecatedID()
-                           : ChildProcessHost::kInvalidUniqueID;
-  int32_t routing_id =
-      success ? render_frame_host_->GetRoutingID() : IPC::mojom::kRoutingIdNone;
+  GlobalRenderFrameHostToken frame_token;
+  if (success) {
+    frame_token = render_frame_host_->GetGlobalFrameToken();
+  }
   // Invoking the callback asynchronously to meet the APIs promise.
   GetUIThreadTaskRunner({})->PostTask(
       FROM_HERE,
       base::BindOnce(
           [](RenderFrameHost::PrepareForInnerWebContentsAttachCallback callback,
-             int32_t process_id, int32_t routing_id) {
+             const GlobalRenderFrameHostToken& frame_token) {
             std::move(callback).Run(
-                RenderFrameHostImpl::FromID(process_id, routing_id));
+                RenderFrameHostImpl::FromFrameToken(frame_token));
           },
-          std::move(attach_inner_delegate_callback_), process_id, routing_id));
+          std::move(attach_inner_delegate_callback_), frame_token));
 }
 
 NavigationControllerImpl& RenderFrameHostManager::GetNavigationController() {

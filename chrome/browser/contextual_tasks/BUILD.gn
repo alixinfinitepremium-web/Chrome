@@ -434,10 +434,6 @@ source_set("tab_restore") {
   ]
 }
 
-proto_library("list_accounts_proto") {
-  sources = [ "list_accounts_response.proto" ]
-}
-
 source_set("ui_impl") {
   sources = [
     "contextual_search_session_finder.cc",
@@ -467,7 +463,6 @@ source_set("ui_impl") {
   ]
   deps = [
     ":impl",
-    ":list_accounts_proto",
     ":tab_restore",
     ":ui",
     ":user_data",
@@ -746,6 +741,7 @@ if (!is_android) {
       "//chrome/browser/ui/lens:test_support",
       "//chrome/browser/ui/page_action",
       "//chrome/browser/ui/side_panel",
+      "//chrome/browser/ui/tabs:page_context_eligibility_helper",
       "//chrome/browser/ui/test:dialog",
       "//chrome/browser/ui/views:bubble_anchor_util_views",
       "//chrome/browser/ui/views/frame:browser_view_header",
@@ -762,8 +758,10 @@ if (!is_android) {
       "//components/contextual_tasks/public:test_support",
       "//components/omnibox/browser:test_support",
       "//components/omnibox/common:features",
+      "//components/optimization_guide/content/browser:page_context_eligibility",
       "//components/optimization_guide/core:test_support",
       "//components/optimization_guide/proto:optimization_guide_proto",
+      "//components/page_content_annotations/content",
       "//components/page_content_annotations/core",
       "//components/page_content_annotations/core:test_support",
       "//components/passage_embeddings/core",
@@ -777,6 +775,7 @@ if (!is_android) {
       "//content/test:test_support",
       "//google_apis",
       "//net",
+      "//net:test_support",
       "//testing/gmock",
       "//testing/gtest",
       "//third_party/lens_server_proto:lens_overlay_proto",
@@ -856,7 +855,6 @@ source_set("unit_tests") {
   deps = [
     ":contextual_tasks",
     ":impl",
-    ":list_accounts_proto",
     ":tab_restore",
     ":test_support",
     ":ui",
@@ -907,6 +905,7 @@ source_set("unit_tests") {
     "//components/variations:test_support",
     "//components/vector_icons",
     "//content/test:test_support",
+    "//google_apis:test_support",
     "//services/network:test_support",
     "//services/network/public/cpp",
     "//testing/gmock",
@@ -1105,6 +1104,7 @@ source_set("interactive_ui_tests") {
       "//chrome/browser/ui/contextual_search",
       "//chrome/browser/ui/lens",
       "//chrome/browser/ui/lens:test_support",
+      "//chrome/browser/ui/omnibox/omnibox_everywhere:prefs",
       "//chrome/browser/ui/toolbar/pinned_toolbar",
       "//chrome/browser/ui/views/contextual_tasks:onboarding_bubble",
       "//chrome/browser/ui/views/frame:browser_view_header",

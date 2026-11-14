@@ -2117,6 +2117,7 @@
         {
             "platforms": [
                 "android",
+                "android_desktop",
                 "chromeos",
                 "ios",
                 "linux",
@@ -9804,8 +9805,10 @@
     "GlicPdfSummarizeSingleCta": [
         {
             "platforms": [
+                "linux",
                 "mac",
-                "windows"
+                "windows",
+                "chromeos"
             ],
             "experiments": [
                 {
@@ -11672,6 +11675,7 @@
                         "upload_interval": "30s"
                     },
                     "enable_features": [
+                        "IOSPrivateInsightsService",
                         "PrivateInsightsFeature"
                     ]
                 }
@@ -17555,7 +17559,6 @@
             "platforms": [
                 "android",
                 "android_desktop",
-                "chromeos",
                 "ios"
             ],
             "experiments": [

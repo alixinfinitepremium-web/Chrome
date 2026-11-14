@@ -79,6 +79,11 @@ export interface AimButtonConfig {
   icon: string;
 }
 
+interface UnboundedElement extends HTMLElement {
+  showUnboundedElement(): Promise<void>;
+  hideUnboundedElement(): Promise<void>;
+}
+
 export interface OmniboxPopupSearchboxElement {
   $: {
     composeButton: SearchboxComposeButtonElement,
@@ -241,6 +246,10 @@ export class OmniboxPopupSearchboxElement extends
       textInputType_: {
         type: String,
       },
+      unboundedSupported_: {
+        type: Boolean,
+        reflect: true,
+      },
     };
   }
 
@@ -290,6 +299,9 @@ export class OmniboxPopupSearchboxElement extends
       loadTimeData.getBoolean('searchboxDynamicAnimation');
   protected accessor hasUserInput_: boolean = false;
   protected accessor aimButtonVisible_: boolean = false;
+  protected accessor unboundedSupported_: boolean =
+      loadTimeData.getBoolean('useUnbounded') &&
+      'showUnboundedElement' in HTMLElement.prototype;
   protected accessor aimButtonConfig_: AimButtonConfig = {
     text: '',
     title: '',
@@ -385,6 +397,10 @@ export class OmniboxPopupSearchboxElement extends
   // click turns out to be the first click of a multi-click, the query is
   // cancelled.
   private clickQueriedZps_: boolean = false;
+  // The input's text and selected range when the user started dragging the
+  // selected text, until the drag ends. A drop of that drag back into the input
+  // is handled by `onInputDrop_()`.
+  private textDrag_: {text: string, selection: SelectionRange}|null = null;
   private textfieldModel_: TextfieldModel = new TextfieldModel();
   // Stores the input text prior to the latest edit or selection change event.
   // Paired with `lastInputSelection_` to compute character diffs and offsets
@@ -517,12 +533,9 @@ export class OmniboxPopupSearchboxElement extends
 
     this.eventTracker_.add(document, 'mousemove', this.onMouseMove_.bind(this));
     this.eventTracker_.add(document, 'mouseup', this.onMouseUp_.bind(this));
-    // A press inside the selected elided URL that turns into a drag-and-drop
-    // should leave the URL elided. Blink does not dispatch `mouseup` after a
-    // drag, so cancel the pending unelision here.
-    this.eventTracker_.add(document, 'dragstart', () => {
-      this.unelideOnMouseRelease_ = false;
-    });
+    this.eventTracker_.add(document, 'dragstart', this.onDragStart_.bind(this));
+    this.eventTracker_.add(document, 'dragend', this.onDragEnd_.bind(this));
+    this.eventTracker_.add(this.$.input, 'drop', this.onInputDrop_.bind(this));
 
     this.eventTracker_.add(
         canShowSecondarySideMediaQueryList, 'change',
@@ -658,6 +671,10 @@ export class OmniboxPopupSearchboxElement extends
         changedProperties.has('result') ||
         changedPrivateProperties.has('aimButtonVisible_')) {
       this.updateAimButtonCollapse_();
+    }
+
+    if (changedProperties.has('dropdownIsVisible')) {
+      this.updateUnboundedWindow_();
     }
   }
 
@@ -1078,6 +1095,109 @@ export class OmniboxPopupSearchboxElement extends
     const start = input.selectionStart ?? 0;
     const end = input.selectionEnd ?? 0;
     return start !== end && Math.abs(end - start) !== input.value.length;
+  }
+
+  private onDragStart_(e: DragEvent) {
+    // Blink does not dispatch `mouseup` after a drag, so cancel what the press
+    // that started the drag would have done on release. E.g. a press inside
+    // the selected elided URL that turns into a drag-and-drop should leave the
+    // URL elided.
+    this.selectAllOnMouseRelease_ = false;
+    this.queryZpsOnMouseRelease_ = false;
+    this.unelideOnMouseRelease_ = false;
+
+    const input = this.getInputElement().inputElement;
+    const start = input.selectionStart ?? 0;
+    const end = input.selectionEnd ?? 0;
+    if (!e.composedPath().includes(input) || start === end) {
+      return;
+    }
+    this.textDrag_ = {
+      text: input.value,
+      selection: {start: Math.min(start, end), end: Math.max(start, end)},
+    };
+    // Like the native omnibox, allow both copying and moving the text.
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'copyMove';
+    }
+    // Like `OmniboxViewViews::OnMouseDragged()`, close the dropdown, since the
+    // user may want to drop the text on something that it covers.
+    this.clearAutocompleteMatches();
+  }
+
+  private onDragEnd_() {
+    this.textDrag_ = null;
+  }
+
+  /**
+   * Handles a drop of the text dragged out of the input back into it, like
+   * `views::Textfield::DropDraggedText()`: moves the text to where it's
+   * dropped, or copies it there if the copy modifier is held, as a single
+   * undoable edit, and puts the caret after the dropped text rather than
+   * selecting it. Blink handles other drops.
+   */
+  private onInputDrop_(e: DragEvent) {
+    const drag = this.textDrag_;
+    const input = this.getInputElement().inputElement;
+    if (!drag || input.value !== drag.text) {
+      return;
+    }
+    const caretPosition = document.caretPositionFromPoint(
+        e.clientX, e.clientY,
+        {shadowRoots: [input.getRootNode() as ShadowRoot]});
+    if (caretPosition?.offsetNode !== input) {
+      return;
+    }
+    e.preventDefault();
+
+    const {start, end} = drag.selection;
+    const draggedText = drag.text.substring(start, end);
+    let position = caretPosition.offset;
+    // Like Blink, which handles drops of other text, use the platform's copy
+    // modifier.
+    const isCopy = isMac ? e.altKey : e.ctrlKey;
+    if (!isCopy) {
+      // Account for the removal of the dragged text before the drop position.
+      position -= Math.max(0, Math.min(position, end) - start);
+      if (position === start) {
+        // Moving the text to where it is leaves it as is.
+        input.setSelectionRange(end, end);
+        return;
+      }
+    }
+    this.syncTextfieldModelWithInput_(drag.text);
+    if (isCopy) {
+      this.textfieldModel_.selectRange({start: position, end: position});
+      this.textfieldModel_.insertText(draggedText);
+    } else {
+      this.textfieldModel_.selectRange({start, end});
+      this.textfieldModel_.deletePrimarySelectionAndInsertTextAt(
+          draggedText, position);
+    }
+
+    const newValue = this.textfieldModel_.text;
+    const cursorPos = this.textfieldModel_.getCursorPosition();
+    this.lastInputText_ = newValue;
+    this.lastInputSelection_ = this.textfieldModel_.selection;
+    this.updateEditHistoryState_();
+
+    this.userInputInProgress_ = true;
+    this.hasUserInput_ = !!newValue.trim();
+    const scrollLeft = input.scrollLeft;
+    this.getInputElement().setInput({text: newValue, inline: ''});
+    this.getInputElement().setSelectionRange(cursorPos, cursorPos);
+    this.scrollOffsetIntoView_(cursorPos, scrollLeft);
+    this.updateAimButtonCollapse_();
+
+    if (!this.isInputCleared_(newValue)) {
+      // Like `OmniboxViewViews::UpdatePopup()`, only prevent inline
+      // autocompletion if the caret isn't at the end of the text, which
+      // `queryAutocomplete()` checks.
+      this.queryAutocomplete(
+          newValue, /*preventInlineAutocomplete=*/ false, /*isOnFocus=*/ false);
+    } else {
+      this.clearAutocompleteMatches();
+    }
   }
 
   override async onInputWrapperKeydown(e: KeyboardEvent) {
@@ -1951,19 +2071,55 @@ export class OmniboxPopupSearchboxElement extends
   }
 
   /**
-   * Executes deferred focus (`FOCUS` / `FOCUS_AND_SELECT`) when the tab
-   * transitions from hidden to visible (`document.visibilityState ===
-   * 'visible'`).
+   * Re-applies the unbounded window state and executes deferred focus (`FOCUS`
+   * / `FOCUS_AND_SELECT`) once the tab transitions from hidden to visible
+   * (`document.visibilityState === 'visible'`).
    */
   private onVisibilityChange_() {
-    if (document.visibilityState === 'visible' &&
-        this.deferredFocusAction_ !== null) {
+    if (document.visibilityState !== 'visible') {
+      return;
+    }
+    // Re-apply the dropdown state that was skipped while hidden.
+    this.updateUnboundedWindow_();
+    if (this.deferredFocusAction_ !== null) {
       const action = this.deferredFocusAction_;
       this.deferredFocusAction_ = null;
       this.$.input.focus();
       if (action === DeferredFocusAction.FOCUS_AND_SELECT) {
         this.getInputElement().select();
       }
+    }
+  }
+
+  // Pops #inputWrapper out of the WebView while the dropdown is visible.
+  private updateUnboundedWindow_() {
+    if (!this.unboundedSupported_) {
+      return;
+    }
+    const wrapper = this.$.inputWrapper as UnboundedElement;
+    if (this.dropdownIsVisible === wrapper.matches(':unbounded')) {
+      return;
+    }
+    // showUnboundedElement() rejects while the document is hidden (its
+    // lifecycle is throttled). Don't call it; visibilitychange re-applies.
+    if (this.dropdownIsVisible && document.visibilityState !== 'visible') {
+      return;
+    }
+    (this.dropdownIsVisible ? wrapper.showUnboundedElement() :
+                              wrapper.hideUnboundedElement())
+        .catch(err => {
+          // AbortError: the dropdown toggled again before this finished.
+          if (!(err instanceof DOMException && err.name === 'AbortError')) {
+            console.warn(err);
+          }
+        });
+  }
+
+  protected onInputWrapperBeforetoggle_(e: ToggleEvent) {
+    // Light dismiss (Escape, outside click, deactivation) clears matches and
+    // closes the dropdown; programmatic hides already cleared them.
+    if (e.newState === 'closed' && this.dropdownIsVisible) {
+      this.clearAutocompleteMatches();
     }
   }
 
@@ -2171,6 +2327,17 @@ export class OmniboxPopupSearchboxElement extends
     } else if (e.inputType === 'historyRedo') {
       e.preventDefault();
       this.redo_();
+    } else if (
+        e.inputType === 'insertFromDrop' || e.inputType === 'deleteByDrag') {
+      // A drop Blink handles first selects where it inserts or deletes text,
+      // e.g. the drop point, but `selectionchange` is only dispatched later.
+      // Record the selection, so that `updateTextfieldModel_()` applies the
+      // edit where it happens.
+      const input = this.getInputElement().inputElement;
+      this.lastInputSelection_ = {
+        start: input.selectionStart ?? 0,
+        end: input.selectionEnd ?? 0,
+      };
     }
   }
 
@@ -2246,6 +2413,13 @@ export class OmniboxPopupSearchboxElement extends
       this.handleEscapeKey_();
       this.updateAimButtonCollapse_();
       return;
+    }
+
+    if (!this.dropdownIsVisible &&
+        (e.key === 'ArrowUp' || e.key === 'ArrowDown') &&
+        !this.getInputElement()?.isMultiline() && !this.userInputInProgress_) {
+      this.userInputInProgress_ = true;
+      this.popupPageHandler_.startUserInput(this.currentSequenceNum_);
     }
 
     if (e.key === 'Enter' && !this.hasSelection_) {

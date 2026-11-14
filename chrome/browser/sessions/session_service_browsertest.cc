@@ -257,14 +257,23 @@ IN_PROC_BROWSER_TEST_F(SessionServiceBrowserTest,
 }
 
 IN_PROC_BROWSER_TEST_F(SessionServiceBrowserTest, EmptyWindowSaved) {
+  base::HistogramTester histogram_tester;
   BrowserWindowInterface* empty_browser = CreateBrowserWindow(
       BrowserWindowCreateParams(browser()->GetProfile(), true));
 
   ASSERT_EQ(0, empty_browser->GetTabStripModel()->count());
   service()->ResetFromCurrentBrowsers();
 
+  // A window that already had tabs at the rebuild is not counted.
+  std::ignore = AddTabAtIndexToBrowser(browser(), -1, GURL(url::kAboutBlankURL),
+                                       ui::PAGE_TRANSITION_TYPED);
+  histogram_tester.ExpectTotalCount(
+      "Session.Counterfactual.EmptyWindowTabWouldHaveBeenLost", 0);
+
   std::ignore = AddTabAtIndexToBrowser(
       empty_browser, -1, GURL(url::kAboutBlankURL), ui::PAGE_TRANSITION_TYPED);
+  histogram_tester.ExpectUniqueSample(
+      "Session.Counterfactual.EmptyWindowTabWouldHaveBeenLost", true, 1);
 
   sessions::CommandStorageManager* command_storage_manager =
       SessionServiceTestHelper(service()).command_storage_manager();
@@ -290,6 +299,7 @@ IN_PROC_BROWSER_TEST_F(SessionServiceBrowserTest, EmptyWindowSaved) {
 }
 
 IN_PROC_BROWSER_TEST_F(SessionServiceBrowserTest, NoRewriteOnSecondNavigation) {
+  base::HistogramTester histogram_tester;
   ASSERT_TRUE(
       ui_test_utils::NavigateToURL(browser(), GURL("data:text/html,first")));
 
@@ -311,8 +321,34 @@ IN_PROC_BROWSER_TEST_F(SessionServiceBrowserTest, NoRewriteOnSecondNavigation) {
   ASSERT_TRUE(
       ui_test_utils::NavigateToURL(browser(), GURL("data:text/html,second")));
   EXPECT_FALSE(helper.command_storage_manager()->pending_reset());
+  // The old code would not have rewritten here either.
+  histogram_tester.ExpectTotalCount("Session.Counterfactual.FullRewriteAvoided",
+                                    0);
 
   ASSERT_TRUE(
       ui_test_utils::NavigateToURL(browser(), GURL("data:text/html,third")));
   EXPECT_FALSE(helper.command_storage_manager()->pending_reset());
+  histogram_tester.ExpectUniqueSample(
+      "Session.Counterfactual.FullRewriteAvoided", true, 1);
+
+  // The old code's rewrite reset the bound, so it skipped the 4th page and
+  // rewrote again on the 5th.
+  ASSERT_TRUE(
+      ui_test_utils::NavigateToURL(browser(), GURL("data:text/html,fourth")));
+  histogram_tester.ExpectUniqueSample(
+      "Session.Counterfactual.FullRewriteAvoided", true, 1);
+  ASSERT_TRUE(
+      ui_test_utils::NavigateToURL(browser(), GURL("data:text/html,fifth")));
+  histogram_tester.ExpectUniqueSample(
+      "Session.Counterfactual.FullRewriteAvoided", true, 2);
+
+  // No rewrite is avoided when one is already pending.
+  ASSERT_TRUE(
+      ui_test_utils::NavigateToURL(browser(), GURL("data:text/html,sixth")));
+  helper.command_storage_manager()->Save();
+  helper.command_storage_manager()->set_pending_reset(true);
+  ASSERT_TRUE(
+      ui_test_utils::NavigateToURL(browser(), GURL("data:text/html,seventh")));
+  histogram_tester.ExpectUniqueSample(
+      "Session.Counterfactual.FullRewriteAvoided", true, 2);
 }

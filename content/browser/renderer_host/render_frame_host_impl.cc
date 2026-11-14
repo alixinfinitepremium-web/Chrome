@@ -620,7 +620,7 @@ void GrantFileAccess(ChildProcessId child_id,
 // process/routing IDs as a weak reference to the RenderFrameHostImpl.
 class RemoterFactoryImpl final : public media::mojom::RemoterFactory {
  public:
-  RemoterFactoryImpl(int process_id, int routing_id)
+  RemoterFactoryImpl(ChildProcessId process_id, int routing_id)
       : process_id_(process_id), routing_id_(routing_id) {}
 
   RemoterFactoryImpl(const RemoterFactoryImpl&) = delete;
@@ -635,15 +635,16 @@ class RemoterFactoryImpl final : public media::mojom::RemoterFactory {
     }
   }
 
-  const int process_id_;
+  const ChildProcessId process_id_;
   const int routing_id_;
 };
 #endif  // BUILDFLAG(ENABLE_MEDIA_REMOTING)
 
 RenderFrameHostOrProxy LookupRenderFrameHostOrProxy(int process_id,
                                                     int routing_id) {
-  RenderFrameHostImpl* rfh =
-      RenderFrameHostImpl::FromID(process_id, routing_id);
+  // TODO(crbug.com/379869738): Remove FromUnsafeValue().
+  RenderFrameHostImpl* rfh = RenderFrameHostImpl::FromID(
+      ChildProcessId::FromUnsafeValue(process_id), routing_id);
   RenderFrameProxyHost* proxy = nullptr;
   if (!rfh) {
     proxy = RenderFrameProxyHost::FromID(process_id, routing_id);
@@ -2410,13 +2411,6 @@ RenderFrameHostImpl* RenderFrameHostImpl::FromID(GlobalRenderFrameHostId id) {
 }
 
 // static
-RenderFrameHostImpl* RenderFrameHostImpl::FromID(int render_process_id,
-                                                 int render_frame_id) {
-  return RenderFrameHostImpl::FromID(GlobalRenderFrameHostId(
-      ChildProcessId::FromUnsafeValue(render_process_id), render_frame_id));
-}
-
-// static
 RenderFrameHostImpl* RenderFrameHostImpl::FromID(
     ChildProcessId render_process_id,
     int render_frame_id) {
@@ -2428,19 +2422,10 @@ RenderFrameHostImpl* RenderFrameHostImpl::FromID(
 RenderFrameHostImpl* RenderFrameHostImpl::FromFrameToken(
     const GlobalRenderFrameHostToken& global_frame_token,
     mojo::ReportBadMessageCallback* process_mismatch_callback) {
-  return RenderFrameHostImpl::FromFrameToken(global_frame_token.child_id,
-                                             global_frame_token.frame_token,
-                                             process_mismatch_callback);
-}
-
-// static
-RenderFrameHostImpl* RenderFrameHostImpl::FromFrameToken(
-    int process_id,
-    const blink::LocalFrameToken& frame_token,
-    mojo::ReportBadMessageCallback* process_mismatch_callback) {
+  // TODO(crbug.com/379869738): Remove FromUnsafeValue().
   return RenderFrameHostImpl::FromFrameToken(
-      ChildProcessId::FromUnsafeValue(process_id), frame_token,
-      process_mismatch_callback);
+      ChildProcessId::FromUnsafeValue(global_frame_token.child_id),
+      global_frame_token.frame_token, process_mismatch_callback);
 }
 
 // static
@@ -2494,16 +2479,6 @@ RenderFrameHostImpl* RenderFrameHostImpl::FromDocumentToken(
 }
 
 // static
-RenderFrameHostImpl* RenderFrameHostImpl::FromDocumentToken(
-    int process_id,
-    const blink::DocumentToken& document_token,
-    mojo::ReportBadMessageCallback* process_mismatch_callback) {
-  return RenderFrameHostImpl::FromDocumentToken(
-      ChildProcessId::FromUnsafeValue(process_id), document_token,
-      process_mismatch_callback);
-}
-
-// static
 RenderFrameHost* RenderFrameHost::FromAXTreeID(const ui::AXTreeID& ax_tree_id) {
   return RenderFrameHostImpl::FromAXTreeID(ax_tree_id);
 }
@@ -2514,7 +2489,9 @@ RenderFrameHostImpl* RenderFrameHostImpl::FromAXTreeID(
   CHECK_CURRENTLY_ON(BrowserThread::UI);
   ui::AXActionHandlerRegistry::FrameID frame_id =
       ui::AXActionHandlerRegistry::GetInstance()->GetFrameID(ax_tree_id);
-  return RenderFrameHostImpl::FromID(frame_id.first, frame_id.second);
+  // TODO(crbug.com/379869738): Remove FromUnsafeValue().
+  return RenderFrameHostImpl::FromID(
+      ChildProcessId::FromUnsafeValue(frame_id.first), frame_id.second);
 }
 
 // static
@@ -10789,7 +10766,7 @@ void RenderFrameHostImpl::OpenURL(blink::mojom::OpenURLParamsPtr params) {
   // InitiatorNavigationState.
   if (params->initiator_frame_token) {
     RenderFrameHostImpl* initiator_frame = RenderFrameHostImpl::FromFrameToken(
-        GetProcess()->GetDeprecatedID(), params->initiator_frame_token.value());
+        GetProcess()->GetID(), params->initiator_frame_token.value());
 
     // Try recording the AdClickMainFrameNavigation use counter for navigation
     // targeting this page's main frame, or targeting a new tab.
@@ -12012,8 +11989,7 @@ void RenderFrameHostImpl::BeginNavigation(
 
   if (begin_params->initiator_frame_token) {
     RenderFrameHostImpl* initiator_frame = RenderFrameHostImpl::FromFrameToken(
-        GetProcess()->GetDeprecatedID(),
-        begin_params->initiator_frame_token.value());
+        GetProcess()->GetID(), begin_params->initiator_frame_token.value());
     if (IsOutermostMainFrame()) {
       MaybeRecordAdClickMainFrameNavigationMetrics(
           /*initiator_frame=*/initiator_frame,
@@ -15454,9 +15430,9 @@ void RenderFrameHostImpl::BindMediaMetricsProviderReceiver(
 #if BUILDFLAG(ENABLE_MEDIA_REMOTING)
 void RenderFrameHostImpl::BindMediaRemoterFactoryReceiver(
     mojo::PendingReceiver<media::mojom::RemoterFactory> receiver) {
-  mojo::MakeSelfOwnedReceiver(std::make_unique<RemoterFactoryImpl>(
-                                  GetProcess()->GetDeprecatedID(), routing_id_),
-                              std::move(receiver));
+  mojo::MakeSelfOwnedReceiver(
+      std::make_unique<RemoterFactoryImpl>(GetProcess()->GetID(), routing_id_),
+      std::move(receiver));
 }
 #endif
 

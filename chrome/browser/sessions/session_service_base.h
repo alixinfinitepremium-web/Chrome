@@ -10,6 +10,7 @@
 #include <string>
 #include <utility>
 
+#include "base/containers/flat_set.h"
 #include "base/functional/callback.h"
 #include "base/memory/raw_ptr.h"
 #include "base/memory/weak_ptr.h"
@@ -349,6 +350,9 @@ class SessionServiceBase : public sessions::CommandStorageManagerDelegate,
   // written.
   IdToRange tab_to_available_range_;
 
+  // Tabs one step past their rebuild-time range bound.
+  base::flat_set<SessionID> tabs_past_rebuild_bound_;
+
   // Force session commands to be rebuild before next save event.
   bool rebuild_on_next_save_ = false;
 
@@ -359,6 +363,9 @@ class SessionServiceBase : public sessions::CommandStorageManagerDelegate,
   // Set of windows we're tracking changes to. This is only browsers that
   // return true from |ShouldRestoreWindowOfType|.
   WindowsTracking windows_tracking_;
+
+  // Closed windows can't fire: TabInserted ignores untracked windows.
+  base::flat_set<SessionID> windows_empty_at_last_rebuild_;
 
   bool is_saving_enabled_ = true;
 

@@ -384,7 +384,6 @@ class CONTENT_EXPORT RenderFrameHostImpl
   }
 
   static RenderFrameHostImpl* FromID(GlobalRenderFrameHostId id);
-  static RenderFrameHostImpl* FromID(int process_id, int routing_id);
   static RenderFrameHostImpl* FromID(ChildProcessId process_id, int routing_id);
   // Returns the `RenderFrameHostImpl` with the given `blink::LocalFrameToken`,
   // or `nullptr` if no such `RenderFrameHostImpl` exists.
@@ -396,11 +395,6 @@ class CONTENT_EXPORT RenderFrameHostImpl
   // `process_mismatch_callback` (if non-null) and returns `nullptr`.
   static RenderFrameHostImpl* FromFrameToken(
       const GlobalRenderFrameHostToken& frame_token,
-      mojo::ReportBadMessageCallback* process_mismatch_callback = nullptr);
-  // TODO(crbug.com/379869738) Remove this method when usages are ported.
-  static RenderFrameHostImpl* FromFrameToken(
-      int process_id,
-      const blink::LocalFrameToken& frame_token,
       mojo::ReportBadMessageCallback* process_mismatch_callback = nullptr);
   static RenderFrameHostImpl* FromFrameToken(
       ChildProcessId process_id,
@@ -416,11 +410,6 @@ class CONTENT_EXPORT RenderFrameHostImpl
   // `process_mismatch_callback` (if non-null) and returns `nullptr`.
   static RenderFrameHostImpl* FromDocumentToken(
       ChildProcessId process_id,
-      const blink::DocumentToken& document_token,
-      mojo::ReportBadMessageCallback* process_mismatch_callback = nullptr);
-  // TODO(crbug.com/379869738) Remove this method when usages are ported.
-  static RenderFrameHostImpl* FromDocumentToken(
-      int process_id,
       const blink::DocumentToken& document_token,
       mojo::ReportBadMessageCallback* process_mismatch_callback = nullptr);
 
