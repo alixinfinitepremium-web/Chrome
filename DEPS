@@ -335,7 +335,7 @@ vars = {
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling ANGLE
   # and whatever else without interference from each other.
-  'angle_revision': 'c310b62d086b119fdfcfe5914a5970a1e418e4ee',
+  'angle_revision': '99a746a6e378fcb2e57d89cf47a0310800d7411a',
   # Three lines of non-changing comments so that
   # the commit queue can handle CLs rolling SwiftShader
   # and whatever else without interference from each other.
@@ -576,7 +576,7 @@ vars = {
   'libcxx_revision':       '64f64c14ae2f4653af875bd172462a4c5e6afe18',
 
   # GN CIPD package version.
-  'gn_version': 'git_revision:f4c9d7267e593bd92a3f01a3c55fc260dac0552f',
+  'gn_version': 'git_revision:ddc6c4ae595393d43b38e62f2e2baa7661af716f',
 
   # ninja CIPD package.
   'ninja_package': 'infra/3pp/tools/ninja/',
@@ -3488,7 +3488,7 @@ deps = {
     'packages': [
       {
         'package': 'chromeos_internal/apps/projector_app/app',
-        'version': 'OnT2mx8Id7YfOz9uQMHEUm8UyUs2yq0fgLSogGKcXV0C',
+        'version': 'rq45rSIOBJHdH8gYfvTWDUA9yJ0Ly5dQf0cRjVNs-bsC',
       },
     ],
     'condition': 'checkout_chromeos and checkout_src_internal',
@@ -3910,7 +3910,7 @@ deps = {
 
   'src/ios_internal':  {
       'url': Var('chrome_git') + '/chrome/ios_internal.git' + '@' +
-        '67d47c58fc3614f476e96a684d18900c17e66d75',
+        'a96e4b0a82ffb7feb2b92c564ac9a4d2ebbc6f65',
       'condition': 'checkout_ios and checkout_src_internal',
   },
 
