@@ -76,16 +76,16 @@ found in the LICENSE file.
 
 <!-- LINT.ThenChange(//chrome/browser/actor/tools/one_time_token/attempt_otp_filling_metrics.cc:AttemptOtpFillingStepSuffix) -->
 
-<!-- TODO(crbug.com/583695450): Rename the variants to match the product flows
-     once the OtpCoordinator refactoring lands. -->
+<!-- LINT.IfChange(GmailOtpFlowType) -->
 
 <variants name="GmailOtpFlowType">
-  <variant name="GmailAgentic"
-      summary="GmailOtpRetriever, which both the autofill flow and the actor
-               flow use"/>
-  <variant name="GmailNonAgentic"
-      summary="the non-agentic flow (GmailOtpService)"/>
+  <variant name="GmailActor"
+      summary="the actor flow, where an agent task fills the OTP"/>
+  <variant name="GmailAutofill"
+      summary="the autofill flow, which offers the OTP as a suggestion"/>
 </variants>
+
+<!-- LINT.ThenChange(//components/one_time_tokens/core/browser/gmail_otp_sender_domain_metrics.cc:GmailOtpFlowType) -->
 
 <variants name="GmailOtpTokenSource">
   <variant name="Cached" summary="a cached"/>
