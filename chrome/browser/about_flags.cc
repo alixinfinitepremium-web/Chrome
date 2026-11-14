@@ -10599,12 +10599,6 @@ const FeatureEntry kFeatureEntries[] = {
              kAutofillEnableCvcStorageAndFillingStandaloneFormEnhancement)},
 
 #if BUILDFLAG(IS_ANDROID)
-    {"clank-default-browser-promo-role-manager",
-     flag_descriptions::kClankDefaultBrowserPromoRoleManagerName,
-     flag_descriptions::kClankDefaultBrowserPromoRoleManagerDescription,
-     kOsAndroid,
-     SINGLE_DISABLE_VALUE_TYPE(switches::kDisableDefaultBrowserPromo)},
-
     {"desktop-ua-on-connected-display",
      flag_descriptions::kDesktopUAOnConnectedDisplayName,
      flag_descriptions::kDesktopUAOnConnectedDisplayDescription, kOsAndroid,
@@ -12321,11 +12315,6 @@ const FeatureEntry kFeatureEntries[] = {
      flag_descriptions::kServiceWorkerSyntheticResponseName,
      flag_descriptions::kServiceWorkerSyntheticResponseDescription, kOsAll,
      FEATURE_VALUE_TYPE(blink::features::kServiceWorkerSyntheticResponse)},
-
-    {"user-value-default-browser-strings",
-     flag_descriptions::kUserValueDefaultBrowserStringsName,
-     flag_descriptions::kUserValueDefaultBrowserStringsDescription, kOsDesktop,
-     FEATURE_VALUE_TYPE(features::kUserValueDefaultBrowserStrings)},
 
     {"mdm-errors-for-dasher-accounts-handling",
      flag_descriptions::kHandleMdmErrorsForDasherAccountsName,

@@ -49,6 +49,7 @@ import org.chromium.base.test.util.Features.EnableFeatures;
 import org.chromium.chrome.browser.browser_controls.BrowserControlsStateProvider.ControlsPosition;
 import org.chromium.chrome.browser.omnibox.R;
 import org.chromium.chrome.browser.omnibox.UrlBarData;
+import org.chromium.chrome.browser.omnibox.styles.BadgedIconDrawable;
 import org.chromium.chrome.browser.omnibox.styles.OmniboxDrawableState;
 import org.chromium.chrome.browser.omnibox.styles.OmniboxDrawableState.IconSize;
 import org.chromium.chrome.browser.omnibox.styles.OmniboxImageSupplier;
@@ -449,6 +450,81 @@ public class BasicSuggestionProcessorUnitTest {
     }
 
     @Test
+    public void blueDot_replacesRefineButton() {
+        mProcessor.onNativeInitialized();
+        var template =
+                SuggestTemplateInfo.newBuilder()
+                        .setActionIcon(SuggestTemplateInfo.ActionIconType.BLUE_DOT)
+                        .build();
+        mSuggestion =
+                createSuggestionBuilder(OmniboxSuggestionType.SEARCH_SUGGEST, "query")
+                        .setIsSearch(true)
+                        .setSerializedSuggestTemplate(template.toByteArray())
+                        .build();
+        mModel = mProcessor.createModel();
+        mProcessor.populateModel(mInput, mSuggestion, mModel, 0);
+
+        // Nothing on the right reacts to taps.
+        assertNull(mModel.get(BaseSuggestionViewProperties.ACTION_BUTTONS));
+        OmniboxDrawableState dot = mModel.get(BaseSuggestionViewProperties.END_ICON);
+        assertNotNull(dot);
+        assertEquals(R.drawable.ic_action_dot_24dp, dot.resourceIdForTesting);
+        assertFalse(dot.allowTint);
+    }
+
+    @Test
+    public void blueDot_shownForNonRefineableSuggestions() {
+        mProcessor.onNativeInitialized();
+        var template =
+                SuggestTemplateInfo.newBuilder()
+                        .setActionIcon(SuggestTemplateInfo.ActionIconType.BLUE_DOT)
+                        .build();
+        mSuggestion =
+                createSuggestionBuilder(OmniboxSuggestionType.SEARCH_WHAT_YOU_TYPED, "query")
+                        .setIsSearch(true)
+                        .setSerializedSuggestTemplate(template.toByteArray())
+                        .build();
+        assertFalse(mSuggestion.isRefineable());
+        mModel = mProcessor.createModel();
+        mProcessor.populateModel(mInput, mSuggestion, mModel, 0);
+
+        OmniboxDrawableState dot = mModel.get(BaseSuggestionViewProperties.END_ICON);
+        assertNotNull(dot);
+        assertEquals(R.drawable.ic_action_dot_24dp, dot.resourceIdForTesting);
+    }
+
+    @Test
+    public void blueDot_shownWithRemoveButton() {
+        // Devices with a precision pointer show the remove button.
+        OmniboxCapabilities.setIsDesktopPlatformForTesting(true);
+        mProcessor = new BasicSuggestionProcessor(mUiContext);
+        mProcessor.onNativeInitialized();
+        var template =
+                SuggestTemplateInfo.newBuilder()
+                        .setActionIcon(SuggestTemplateInfo.ActionIconType.BLUE_DOT)
+                        .build();
+        mSuggestion =
+                createSuggestionBuilder(OmniboxSuggestionType.SEARCH_HISTORY, "query")
+                        .setIsSearch(true)
+                        .setDeletable(true)
+                        .setSerializedSuggestTemplate(template.toByteArray())
+                        .build();
+        mModel = mProcessor.createModel();
+        mProcessor.populateModel(mInput, mSuggestion, mModel, 0);
+
+        // The remove button and the dot are both shown.
+        assertEquals(
+                mUiContext.resourceProvider.getString(
+                        R.string.accessibility_omnibox_remove_suggestion),
+                mModel.get(BaseSuggestionViewProperties.ACTION_BUTTONS)
+                        .get(0)
+                        .accessibilityDescription);
+        OmniboxDrawableState dot = mModel.get(BaseSuggestionViewProperties.END_ICON);
+        assertNotNull(dot);
+        assertEquals(R.drawable.ic_action_dot_24dp, dot.resourceIdForTesting);
+    }
+
+    @Test
     public void switchTabIcon_shownForSwitchToTabSuggestions() {
         mInput.setPageClassification(PageClassification.INSTANT_NTP_WITH_OMNIBOX_AS_STARTING_FOCUS);
 
@@ -572,6 +648,116 @@ public class BasicSuggestionProcessorUnitTest {
         createUrlSuggestion(OmniboxSuggestionType.URL_WHAT_YOU_TYPED, "");
 
         verify(mImageSupplier, never()).getVectorIcon(any(), anyBoolean(), anyInt());
+    }
+
+    @Test
+    public void typeIconBadge_dotFromTemplate() {
+        createSearchSuggestion(OmniboxSuggestionType.SEARCH_HISTORY, "query");
+        OmniboxDrawableState plainIcon = mModel.get(BaseSuggestionViewProperties.ICON);
+
+        var template =
+                SuggestTemplateInfo.newBuilder()
+                        .setTypeIconBadge(
+                                SuggestTemplateInfo.TypeIconBadge.newBuilder()
+                                        .setBadgeType(
+                                                SuggestTemplateInfo.TypeIconBadge.BadgeType.DOT))
+                        .build();
+        mSuggestion =
+                createSuggestionBuilder(OmniboxSuggestionType.SEARCH_HISTORY, "query")
+                        .setIsSearch(true)
+                        .setSerializedSuggestTemplate(template.toByteArray())
+                        .build();
+        mModel = mProcessor.createModel();
+        mProcessor.populateModel(mInput, mSuggestion, mModel, 0);
+
+        // The same icon, with the badge drawn on top of it.
+        OmniboxDrawableState icon = mModel.get(BaseSuggestionViewProperties.ICON);
+        assertFalse(plainIcon.drawable instanceof BadgedIconDrawable);
+        assertTrue(icon.drawable instanceof BadgedIconDrawable);
+        Drawable iconUnderBadge = ((BadgedIconDrawable) icon.drawable).getDrawable(/* index= */ 0);
+        assertEquals(plainIcon.drawable.getClass(), iconUnderBadge.getClass());
+        assertEquals(plainIcon.drawable.getIntrinsicWidth(), iconUnderBadge.getIntrinsicWidth());
+        assertEquals(plainIcon.size, icon.size);
+        assertEquals(plainIcon.allowTint, icon.allowTint);
+    }
+
+    @Test
+    @EnableFeatures(OmniboxFeatureList.OMNIBOX_NATIVE_VECTOR_ICONS)
+    public void typeIconBadge_dotOnNativeVectorIcon() {
+        mProcessor.onNativeInitialized();
+        var vectorIcon =
+                new BitmapDrawable(ContextUtils.getApplicationContext().getResources(), mBitmap);
+        doReturn(vectorIcon).when(mImageSupplier).getVectorIcon(any(), anyBoolean(), anyInt());
+        var template =
+                SuggestTemplateInfo.newBuilder()
+                        .setTypeIconBadge(
+                                SuggestTemplateInfo.TypeIconBadge.newBuilder()
+                                        .setBadgeType(
+                                                SuggestTemplateInfo.TypeIconBadge.BadgeType.DOT))
+                        .build();
+        mSuggestion =
+                createSuggestionBuilder(OmniboxSuggestionType.SEARCH_HISTORY, "query")
+                        .setIsSearch(true)
+                        .setSerializedSuggestTemplate(template.toByteArray())
+                        .build();
+        mModel = mProcessor.createModel();
+        mProcessor.populateModel(mInput, mSuggestion, mModel, 0);
+
+        // The native vector icon gets the badge on top of it too.
+        OmniboxDrawableState icon = mModel.get(BaseSuggestionViewProperties.ICON);
+        assertEquals(IconSize.MEDIUM, icon.size);
+        assertTrue(icon.drawable instanceof BadgedIconDrawable);
+        assertEquals(vectorIcon, ((BadgedIconDrawable) icon.drawable).getDrawable(0));
+    }
+
+    @Test
+    public void typeIconBadge_keepsIconInsteadOfImage() {
+        mProcessor.onNativeInitialized();
+        var template =
+                SuggestTemplateInfo.newBuilder()
+                        .setTypeIconBadge(
+                                SuggestTemplateInfo.TypeIconBadge.newBuilder()
+                                        .setBadgeType(
+                                                SuggestTemplateInfo.TypeIconBadge.BadgeType.DOT))
+                        .build();
+        mSuggestion =
+                createSuggestionBuilder(OmniboxSuggestionType.SEARCH_HISTORY, "query")
+                        .setIsSearch(true)
+                        .setImageUrl(JUnitTestGURLs.URL_1)
+                        .setSerializedSuggestTemplate(template.toByteArray())
+                        .build();
+        mModel = mProcessor.createModel();
+        mProcessor.populateModel(mInput, mSuggestion, mModel, 0);
+
+        // A fetched image would drop the badge, so no image is fetched.
+        verify(mImageSupplier, never()).fetchImage(any(), any());
+        OmniboxDrawableState icon = mModel.get(BaseSuggestionViewProperties.ICON);
+        assertTrue(icon.drawable instanceof BadgedIconDrawable);
+    }
+
+    @Test
+    public void typeIconBadge_keepsIconInsteadOfFavicon() {
+        mProcessor.onNativeInitialized();
+        var template =
+                SuggestTemplateInfo.newBuilder()
+                        .setTypeIconBadge(
+                                SuggestTemplateInfo.TypeIconBadge.newBuilder()
+                                        .setBadgeType(
+                                                SuggestTemplateInfo.TypeIconBadge.BadgeType.DOT))
+                        .build();
+        mSuggestion =
+                createSuggestionBuilder(OmniboxSuggestionType.HISTORY_URL, "title")
+                        .setIsSearch(false)
+                        .setUrl(JUnitTestGURLs.URL_1)
+                        .setSerializedSuggestTemplate(template.toByteArray())
+                        .build();
+        mModel = mProcessor.createModel();
+        mProcessor.populateModel(mInput, mSuggestion, mModel, 0);
+
+        // A favicon would drop the badge, so no favicon is fetched.
+        verify(mImageSupplier, never()).fetchFavicon(any(), any());
+        OmniboxDrawableState icon = mModel.get(BaseSuggestionViewProperties.ICON);
+        assertTrue(icon.drawable instanceof BadgedIconDrawable);
     }
 
     @Test

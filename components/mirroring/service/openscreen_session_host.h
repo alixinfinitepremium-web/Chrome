@@ -134,8 +134,8 @@ class COMPONENT_EXPORT(MIRRORING_SERVICE) OpenscreenSessionHost final
       mojo::PendingRemote<media::mojom::Remoter> remoter,
       mojo::PendingReceiver<media::mojom::RemotingSource> source_receiver)
       override;
-  void RequestRemotingStreaming() override;
-  void RestartMirroringStreaming() override;
+  void StartRemoting() override;
+  void StopRemoting(media::mojom::RemotingStopReason reason) override;
   std::unique_ptr<media::mojom::RemotingDataStreamSender>
   CreateRemotingDataStreamSender(
       bool is_audio,
@@ -226,9 +226,12 @@ class COMPONENT_EXPORT(MIRRORING_SERVICE) OpenscreenSessionHost final
   void RecordBandwidthMetrics();
 
   // Create and send OFFER message.
-  void Negotiate();
   void NegotiateMirroring();
   void NegotiateRemoting();
+
+  // Leaves remoting, or gives up on a remoting OFFER that is no longer
+  // wanted. Resumes mirroring, or stops the session in Remote Playback mode.
+  void StopRemotingAndMaybeResumeMirroring();
 
   // Initialize `media_remoter_` and `rpc_dispatcher_`.
   void InitMediaRemoter(
@@ -297,6 +300,10 @@ class COMPONENT_EXPORT(MIRRORING_SERVICE) OpenscreenSessionHost final
     kRemoting,
   };
   PendingOfferMode pending_offer_mode_ = PendingOfferMode::kNone;
+
+  // True if the source cancelled the remoting OFFER that is in flight. An
+  // OFFER cannot be recalled, so the receiver can still accept it.
+  bool remoting_offer_cancelled_ = false;
 
   // Informed of changes to session state.
   mojo::Remote<mojom::SessionObserver> observer_;

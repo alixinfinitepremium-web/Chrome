@@ -2097,11 +2097,6 @@
     "expiry_milestone": 170
   },
   {
-    "name": "clank-default-browser-promo-role-manager",
-    "owners": [ "eirage@chromium.org" ],
-    "expiry_milestone": 140
-  },
-  {
     "name": "clank-omnibox-minimization",
     "owners": [ "lukedeng@chromium.org" ],
     "expiry_milestone": 175
@@ -9954,15 +9949,6 @@
     "name": "user-media-screen-capturing",
     "owners": [ "hscham@chromium.org", "mbujak@google.com" ],
     "expiry_milestone": 160
-  },
-  {
-    "name": "user-value-default-browser-strings",
-    "owners": [
-      "aisulu@google.com",
-      "arabm@google.com",
-      "chrome-browser-privacy-team@google.com"
-    ],
-    "expiry_milestone": 145
   },
   {
     "name": "variable-system-font-support-on-windows",
